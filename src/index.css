@@ -1,0 +1,102 @@
+@import "tailwindcss";
+:root {
+  font-family: "Inter", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: rgba(255, 255, 255, 0.87);
+  line-height: 1.4;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Removed background animations and overlays */
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+}
+
+/* Removed gradient-related keyframes */
+
+/* Optional inner shell if you want content to stand out from animated bg */
+.app-shell {
+  backdrop-filter: saturate(140%) blur(20px);
+  -webkit-backdrop-filter: saturate(140%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  border-radius: 28px;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* Project card interactive motion (base tilt via JS optional later) */
+.project-card {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease;
+}
+.project-card:hover {
+  transform: translateY(-6px) scale(1.015);
+}
+.project-card:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Removed gradient text utility */
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+button:focus,
+button:focus-visible {
+  outline: none -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
