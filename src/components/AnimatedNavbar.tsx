@@ -4,7 +4,7 @@ export default function AnimatedNavbar() {
   return (
     <GlassSurface
       borderRadius={100}
-      width={1000}
+      width={"90vw"}
       className="w-full  px-10"
       style={{
         position: "fixed",
@@ -13,13 +13,13 @@ export default function AnimatedNavbar() {
       }}
     >
       <nav
-        className="flex items-center justify-between gap-80 w-full"
+        className="flex items-center justify-between  md:gap-80 w-full"
         aria-label="Main navigation"
       >
         <div className="font-semibold tracking-tight text-xl text-white select-none">
           Bora Ozdinc
         </div>
-        <ul className="flex items-center gap-6 text-sm font-medium text-neutral-300">
+        <ul className="flex items-center gap-3 text-sm font-medium text-neutral-300">
           <li>
             <a className="hover:text-white transition-colors" href="#about">
               About

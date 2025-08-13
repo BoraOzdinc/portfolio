@@ -3,10 +3,12 @@ import AnimatedNavbar from "./components/AnimatedNavbar.tsx";
 import { Section } from "./components/Section";
 import { useScrollReveal } from "./hooks/useScrollReveal";
 import TextType from "./components/TextType.tsx";
-import GradientText from "./components/GradientText.tsx";
 import Iridescence from "./components/Iridescence.tsx";
 import ScrollReveal from "./components/ScrollReveal.tsx";
 import RotatingText from "./components/RotatingText.tsx";
+import ShinyText from "./components/ShinyText.tsx";
+import GlassSurface from "./components/GlassSurface.tsx";
+import ProfileCard from "./components/profileCard/index.tsx";
 
 function App() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +28,7 @@ function App() {
       <div className=" flex flex-col items-center justify-center w-full gap-80">
         <header
           id="home"
-          className="w-full max-w-5xl max-h-screen flex flex-col items-start gap-8 pt-28 md:pt-40 pb-32 md:pb-48"
+          className="w-full max-w-screen max-h-screen flex flex-col items-center md:items-start gap-6 pt-40 pb-32 md:pb-48 p-5"
         >
           <Iridescence
             color={[0.4, 0.4, 0.7]}
@@ -37,14 +39,9 @@ function App() {
           <p className=" tracking-widest uppercase text-sky-400 font-semibold">
             Hi, my name is
           </p>
-          <GradientText
-            colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-            animationSpeed={3}
-            showBorder={false}
-            className="flex items-start justify-start text-5xl"
-          >
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-pink-400 to-blue-500 bg-clip-text text-transparent animate-gradient ">
             Bora Kaan Ozdinc
-          </GradientText>
+          </h1>
           <TextType
             text={[
               "I craft performant web apps",
@@ -65,19 +62,35 @@ function App() {
             I&apos;m a frontend engineer focused on creating immersive,
             performant interfaces with React, TypeScript, and thoughtful motion.
           </p>
-          <div className="flex gap-4 pt-2">
-            <a
-              href="#projects"
-              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-fuchsia-500 text-white font-medium shadow-lg shadow-fuchsia-500/20 hover:shadow-fuchsia-500/40 transition-shadow"
+          <div className="flex flex-col md:flex-row items-center gap-4 pt-2">
+            <GlassSurface
+              borderRadius={100}
+              width={250}
+              className="w-full px-10 hover:scale-110 transition-transform duration-300 cursor-pointer"
+              onClick={() => {
+                window.location.href = "#projects";
+              }}
             >
-              View Work
-            </a>
-            <a
-              href="#contact"
-              className="px-5 py-2.5 rounded-lg border border-white/15 text-neutral-200 hover:border-sky-400/50 hover:text-white transition-colors"
+              <ShinyText
+                text="View my work"
+                disabled={false}
+                speed={3}
+                className="text-xl"
+              />
+            </GlassSurface>
+
+            <GlassSurface
+              borderRadius={100}
+              width={250}
+              className="w-full px-10 hover:scale-110 transition-transform duration-300"
             >
-              Contact
-            </a>
+              <ShinyText
+                text="Contact me"
+                disabled={false}
+                speed={3}
+                className="text-xl"
+              />
+            </GlassSurface>
           </div>
         </header>
 
@@ -85,8 +98,21 @@ function App() {
         <Section id="about" title="About Me" accent>
           <div
             ref={aboutRef}
-            className="flex gap-10 items-center relative z-20"
+            className="flex flex-col gap-10 items-center relative z-20"
           >
+            <ProfileCard
+              name="Bora K. Ozdinc"
+              title="Frontend Engineer"
+              handle="boraozdinc"
+              status="Online"
+              contactText="Contact Me"
+              avatarUrl="/image.png"
+              iconUrl="/vite.svg"
+              showUserInfo={true}
+              enableTilt={true}
+              enableMobileTilt={false}
+              onContactClick={() => console.log("Contact clicked")}
+            />
             <ScrollReveal
               baseOpacity={0}
               enableBlur={true}
