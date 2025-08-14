@@ -28,7 +28,7 @@ function App() {
       <div className=" flex flex-col items-center justify-center w-full gap-80">
         <header
           id="home"
-          className="w-full max-w-screen max-h-screen flex flex-col items-center md:items-start gap-6 pt-40 pb-32 md:pb-48 p-5"
+          className="w-full min-w-screen max-h-screen flex flex-col items-center justify-start md:items-center gap-6 pt-40 pb-32 md:pb-48 p-5"
         >
           <Iridescence
             color={[0.4, 0.4, 0.7]}
@@ -144,10 +144,10 @@ function App() {
           </div>
         </Section>
         <Section id="projects" title="Selected Projects" accent>
-          <div className="w-full max-w-5xl mx-auto">
+          <div className="w-full flex flex-col items-center gap-3">
             <div
               ref={projectsRef}
-              className="grid w-full sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid w-full grid-cols-1 md:grid-cols-3 gap-6"
             >
               {[
                 {
@@ -177,10 +177,10 @@ function App() {
               ].map((p) => (
                 <div
                   key={p.title}
-                  className="project-card group relative rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 overflow-hidden hover:border-sky-400/40 transition-colors will-change-transform"
+                  className="flex flex-col rounded-xl w-full border border-white/10 bg-white/5 backdrop-blur-sm p-5  hover:border-sky-400/40 transition-colors will-change-transform"
                 >
                   <div className="absolute inset-px rounded-lg bg-gradient-to-br from-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                  <h3 className="font-semibold mb-2 text-white flex items-start justify-between gap-3">
+                  <h3 className="font-semibold mb-2 text-white flex justify-between gap-3 items-center">
                     <span>{p.title}</span>
                     {p.stack && (
                       <span className="text-[10px] uppercase tracking-wide text-sky-300/70 font-medium">
@@ -230,7 +230,7 @@ function App() {
         <Section id="experience" title="Experience" accent>
           <div className="space-y-10">
             <div className="relative pl-5 border-l border-white/10">
-              <div className="absolute -left-2 top-1.5 h-3 w-3 rounded-full bg-gradient-to-r from-sky-400 to-fuchsia-500" />
+              <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-gradient-to-r from-sky-400 to-fuchsia-500" />
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                 <h3 className="text-xl font-semibold text-white">
                   Firefly · Frontend Developer
@@ -270,7 +270,7 @@ function App() {
         <Section id="education" title="Education" accent>
           <div className="space-y-8">
             <div className="relative pl-5 border-l border-white/10">
-              <div className="absolute -left-2 top-1.5 h-3 w-3 rounded-full bg-gradient-to-r from-sky-400 to-fuchsia-500" />
+              <div className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full bg-gradient-to-r from-sky-400 to-fuchsia-500" />
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                 <h3 className="text-xl font-semibold text-white">
                   Nisantasi University · Software Engineering
@@ -329,7 +329,7 @@ function App() {
               project or just want to say hi.
             </p>
             <a
-              href="mailto:hello@example.com"
+              href="mailto:boraozdinc@hotmail.com"
               className="inline-block rounded-lg bg-gradient-to-r from-sky-500 to-fuchsia-500 px-6 py-3 font-semibold text-white shadow-lg shadow-fuchsia-500/20 hover:shadow-fuchsia-500/40 transition-shadow focus:outline-none focus-visible:ring focus-visible:ring-sky-500/50"
             >
               Say Hello

@@ -16,7 +16,7 @@ export function Section({ id, title, children, className }: SectionProps) {
     <section
       id={id}
       className={cn(
-        "w-full mx-auto px-28 py-28 md:py-40 relative min-w-full items-center  flex flex-col gap-10",
+        "w-full mx-auto px-10 md:px-28 py-28 md:py-40 relative min-w-full items-center  flex flex-col gap-10",
         className
       )}
     >
