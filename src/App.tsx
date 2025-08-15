@@ -28,7 +28,7 @@ function App() {
       <div className=" flex flex-col items-center justify-center w-full gap-80">
         <header
           id="home"
-          className="w-full min-w-screen max-h-screen flex flex-col items-center justify-start md:items-center gap-6 pt-40 pb-32 md:pb-48 p-5"
+          className="w-full min-w-screen max-h-screen flex flex-col justify-center items-center gap-6 pt-40 md:pt-80 pb-32 md:pb-48 p-5"
         >
           <Iridescence
             color={[0.4, 0.4, 0.7]}
@@ -83,6 +83,9 @@ function App() {
               borderRadius={100}
               width={250}
               className="w-full px-10 hover:scale-110 transition-transform duration-300"
+              onClick={() => {
+                window.location.href = "#contact";
+              }}
             >
               <ShinyText
                 text="Contact me"
