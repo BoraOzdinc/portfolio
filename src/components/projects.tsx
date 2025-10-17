@@ -14,21 +14,24 @@ const projects = [
     title: "Aslident Dental Clinic",
     description: "A modern, responsive website for a dental clinic",
     tags: ["Vite", "AWS S3", "React", "Responsive"],
-    image: "src/assets/aslident.png",
+    image:
+      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/aslident.png",
     link: "https://aslident.com.tr",
   },
   {
     title: "Inventory Ark",
     description: "CRM and inventory management system for small businesses",
     tags: ["React", "AWS", "tRPC", "Tailwind CSS"],
-    image: "src/assets/invark.png",
+    image:
+      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/invark.png",
     link: "https://inventoryark.com",
   },
   {
     title: "Data Crispy",
     description: "Chat with your data using AI",
     tags: ["TypeScript", "Nextjs", "Rest Api", "Tailwind CSS"],
-    image: "src/assets/datacrispy.png",
+    image:
+      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/datacrispy.png",
     link: "https://datacrispy.com",
   },
 ];
