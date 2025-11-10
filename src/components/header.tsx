@@ -11,15 +11,33 @@ export function Header() {
             <span className="font-mono text-sm font-medium">ozdinc.dev_</span>
           </div>
           <nav className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                window.open("https://github.com/BoraOzdinc", "_blank")
+              }
+            >
               <FaGithub className="h-5 w-5" />
               <span className="sr-only">GitHub</span>
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                window.open("https://www.linkedin.com/in/boraozdinc", "_blank")
+              }
+            >
               <FaLinkedin className="h-5 w-5" />
               <span className="sr-only">LinkedIn</span>
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                (window.location.href = "mailto:boraozdinc@hotmail.com")
+              }
+            >
               <Mail className="h-5 w-5" />
               <span className="sr-only">Email</span>
             </Button>

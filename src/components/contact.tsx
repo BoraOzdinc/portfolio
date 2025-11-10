@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -5,8 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Mail, MessageSquare, Calendar } from "lucide-react";
+import { Mail, MessageSquare } from "lucide-react";
 
 export function Contact() {
   return (
@@ -32,8 +32,14 @@ export function Contact() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full bg-transparent">
-                bora@ozdinc.dev
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() =>
+                  (window.location.href = "mailto:boraozdinc@hotmail.com")
+                }
+              >
+                boraozdinc@hotmail.com
               </Button>
             </CardContent>
           </Card>
@@ -48,24 +54,17 @@ export function Contact() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full bg-transparent">
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() =>
+                  window.open(
+                    "https://www.linkedin.com/in/boraozdinc",
+                    "_blank"
+                  )
+                }
+              >
                 View Profile
-              </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Calendar className="h-6 w-6" />
-              </div>
-              <CardTitle className="text-balance">Schedule</CardTitle>
-              <CardDescription className="text-pretty">
-                Book a meeting with me
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full bg-transparent">
-                Schedule Call
               </Button>
             </CardContent>
           </Card>
