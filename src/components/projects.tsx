@@ -1,90 +1,139 @@
+import { motion } from "motion/react";
+import { Link } from "react-router-dom";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ExternalLink } from "lucide-react";
+import { SectionHeading } from "@/components/section-heading";
+import { projects } from "@/data/projects";
+import { cn } from "@/lib/utils";
 
-const projects = [
-  {
-    title: "Aslident Dental Clinic",
-    description: "A modern, responsive website for a dental clinic",
-    tags: ["Vite", "AWS S3", "React", "Responsive"],
-    image:
-      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/aslident.png",
-    link: "https://aslident.com.tr",
+const cardVariants = {
+  hidden: { opacity: 0, y: 36 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const },
   },
-  {
-    title: "Inventory Ark",
-    description: "CRM and inventory management system for small businesses",
-    tags: ["React", "AWS", "tRPC", "Tailwind CSS"],
-    image:
-      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/invark.png",
-    link: "https://inventoryark.com",
-  },
-  {
-    title: "Data Crispy",
-    description: "Chat with your data using AI",
-    tags: ["TypeScript", "Nextjs", "Rest Api", "Tailwind CSS"],
-    image:
-      "https://ozdinc-dev-portfolio-images.s3.us-east-1.amazonaws.com/datacrispy.png",
-    link: "https://datacrispy.com",
-  },
-];
+};
 
 export function Projects() {
   return (
-    <section className="py-12 sm:py-16">
-      <div className="space-y-8">
-        <div className="space-y-2">
-          <h2 className="text-balance font-mono text-3xl font-bold tracking-tight">
-            Featured Projects
-          </h2>
-          <p className="text-pretty text-muted-foreground">
-            A selection of recent work showcasing my skills and experience
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2">
-          {projects.map((project, index) => (
-            <Card key={index} className="overflow-hidden">
-              <div className="aspect-video w-full overflow-hidden bg-muted">
-                <img
-                  src={project.image || "/placeholder.svg"}
-                  alt={project.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-balance">{project.title}</CardTitle>
-                <CardDescription className="text-pretty">
-                  {project.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {project.tags.map((tag, tagIndex) => (
-                    <Badge key={tagIndex} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(project.link, "_blank")}
+    <section id="projects" className="py-10 sm:py-14">
+      <div className="space-y-8 sm:space-y-10">
+        <SectionHeading
+          eyebrow="Featured Projects"
+          title="Real products, real workflows, and web systems built to handle complexity."
+          description="Every project below keeps the same content and technical detail. The redesign focuses on how that work is framed, scanned, and explored."
+        />
+
+        <div className="space-y-6">
+          {projects.map((project, index) => {
+            const isReversed = index % 2 === 1;
+
+            return (
+              <motion.article
+                key={project.slug}
+                className="panel-surface overflow-hidden rounded-[2rem]"
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="grid gap-0 lg:grid-cols-[1.02fr_0.98fr]">
+                  <Link
+                    to={`/projects/${project.slug}`}
+                    className={cn(
+                      "group relative min-h-[18rem] overflow-hidden border-b border-white/10 bg-black/30 lg:min-h-[28rem] lg:border-b-0",
+                      isReversed ? "lg:order-2 lg:border-l" : "lg:border-r"
+                    )}
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Live Demo
-                  </Button>
+                    <img
+                      src={project.image || "/placeholder.svg"}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-6">
+                      <div>
+                        <p className="font-mono text-xs uppercase tracking-[0.24em] text-white/60">
+                          Case Study
+                        </p>
+                        <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em] text-white">
+                          {project.title}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-white/15 bg-black/20 px-3 py-1 font-mono text-xs uppercase tracking-[0.2em] text-white/70">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div
+                    className={cn(
+                      "flex flex-col justify-between p-6 sm:p-8",
+                      isReversed && "lg:order-1"
+                    )}
+                  >
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          {project.tags[0]}
+                        </div>
+                        <div className="space-y-3">
+                          <h3 className="text-balance font-display text-3xl font-semibold tracking-[-0.05em]">
+                            {project.title}
+                          </h3>
+                          <p className="text-pretty text-base leading-7 text-muted-foreground">
+                            {project.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                          My Role
+                        </p>
+                        <p className="text-pretty text-sm leading-7 text-muted-foreground">
+                          {project.role}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {project.tags.map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="outline"
+                            className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                      <Button asChild className="rounded-full">
+                        <Link to={`/projects/${project.slug}`}>
+                          View Details
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      {project.link && (
+                        <Button
+                          variant="outline"
+                          className="rounded-full border-white/15 bg-white/[0.02]"
+                          onClick={() => window.open(project.link, "_blank")}
+                        >
+                          Visit Live Site
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </motion.article>
+            );
+          })}
         </div>
       </div>
     </section>

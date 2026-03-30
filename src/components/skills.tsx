@@ -1,64 +1,116 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { motion } from "motion/react";
 import { Code2, Database } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { SectionHeading } from "@/components/section-heading";
+import { projects } from "@/data/projects";
 
 const skills = [
   {
     icon: Code2,
-    title: "Frontend Development",
-    description: "Expert in React, Next.js, and modern JavaScript frameworks",
+    title: "Web Application Engineering",
+    description: "Building responsive, product-focused interfaces and application flows",
     items: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
   },
   {
     icon: Database,
-    title: "Backend Integration",
-    description: "Working with APIs, databases, and server-side technologies",
-    items: ["REST APIs", "PostgreSQL", "Node.js"],
+    title: "Backend Systems",
+    description: "Designing APIs, data models, and integrations that support production apps",
+    items: ["Node.js", "PostgreSQL", "REST APIs"],
   },
 ];
 
+const revealTransition = {
+  duration: 0.6,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
 export function Skills() {
+  const stack = Array.from(
+    new Set(projects.flatMap((project) => project.tags))
+  ).sort((left, right) => left.localeCompare(right));
+
   return (
-    <section className="py-12 sm:py-16">
-      <div className="space-y-8">
-        <div className="space-y-2">
-          <h2 className="text-balance font-mono text-3xl font-bold tracking-tight">
-            Skills & Expertise
-          </h2>
-          <p className="text-pretty text-muted-foreground">
-            Technologies and tools I work with on a daily basis
-          </p>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <section id="capabilities" className="py-8 sm:py-10">
+      <div className="h-full space-y-8">
+        <SectionHeading
+          eyebrow="Capabilities"
+          title="Full-stack delivery backed by product thinking and technical range."
+          description="These capability groups stay close to the systems shown in the portfolio: web apps, data-heavy dashboards, and backend-connected workflows."
+        />
+
+        <div className="grid gap-4">
           {skills.map((skill, index) => {
             const Icon = skill.icon;
+
             return (
-              <Card key={index}>
-                <CardHeader>
-                  <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <motion.div
+                key={skill.title}
+                className="panel-surface rounded-[1.75rem] p-6"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ ...revealTransition, delay: index * 0.08 }}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.2rem] border border-white/10 bg-white/[0.05]">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <CardTitle className="text-balance">{skill.title}</CardTitle>
-                  <CardDescription className="text-pretty">
-                    {skill.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    {skill.items.map((item, itemIndex) => (
-                      <li key={itemIndex}>• {item}</li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <h3 className="font-display text-2xl font-semibold tracking-[-0.04em]">
+                        {skill.title}
+                      </h3>
+                      <p className="text-sm leading-7 text-muted-foreground">
+                        {skill.description}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {skill.items.map((item) => (
+                        <Badge
+                          key={item}
+                          variant="secondary"
+                          className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1"
+                        >
+                          {item}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             );
           })}
         </div>
+
+        <motion.div
+          className="panel-surface rounded-[1.75rem] p-6"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={revealTransition}
+        >
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                Stack Footprint
+              </p>
+              <h3 className="font-display text-2xl font-semibold tracking-[-0.04em]">
+                Technologies used across shipped work
+              </h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {stack.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

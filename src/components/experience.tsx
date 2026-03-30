@@ -1,68 +1,92 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
+import { SectionHeading } from "@/components/section-heading";
 
 const experiences = [
   {
-    title: "Frontend Developer",
+    title: "Frontend Engineer",
     company: "Firefly",
-    period: "2023 - 2025",
-    description: "Frontend development for enterprise application",
+    location: "Remote",
+    period: "June 2023 - August 2025",
+    description:
+      "Built and maintained client-side systems for enterprise products, with a focus on modular React architecture, analytics tooling, and tightly coordinated backend integrations.",
     achievements: [
-      "Collaborated closely with UI/UX designers to translate Figma mockups into pixel-perfect, interactive web apps.",
-      "Integrated RESTful APIs and third-party services to fetch and display dynamic content.",
-      "Participated in code reviews to maintain code quality, standards, and best practices.",
+      "Engineered and maintained multiple React-based client-side microservices, improving system modularity and reducing deployment times by 25%.",
+      "Integrated an interactive geographic mapping module for marketing teams, increasing campaign setup efficiency by 40%.",
+      "Built analytical calculation utilities directly into core platforms, accelerating reporting workflows by more than 30%.",
+      "Partnered with backend engineers on REST API design and data structures, reducing API latency by 20% while keeping the UI responsive.",
     ],
   },
 ];
 
 export function Experience() {
   return (
-    <section className="py-12 sm:py-16">
-      <div className="space-y-8">
-        <div className="space-y-2">
-          <h2 className="text-balance font-mono text-3xl font-bold tracking-tight">
-            Work Experience
-          </h2>
-          <p className="text-pretty text-muted-foreground">
-            My professional journey in frontend development
-          </p>
-        </div>
-        <div className="space-y-6">
-          {experiences.map((exp, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-balance">{exp.title}</CardTitle>
-                    <CardDescription className="text-pretty">
-                      {exp.company}
-                    </CardDescription>
+    <section id="experience" className="py-8 sm:py-10">
+      <div className="h-full space-y-8">
+        <SectionHeading
+          eyebrow="Experience"
+          title="Frontend product engineering with measurable gains in speed, clarity, and scale."
+          description="A concise record of the production environment where enterprise frontend systems, internal tooling, and API-connected interfaces were delivered."
+        />
+
+        <div className="space-y-5">
+          {experiences.map((experience, index) => (
+            <motion.div
+              key={`${experience.company}-${experience.period}`}
+              className="panel-surface rounded-[1.75rem] p-6 sm:p-8"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.08,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <div className="space-y-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-3">
+                    <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                      Career Highlight
+                    </p>
+                    <div className="space-y-2">
+                      <h3 className="font-display text-3xl font-semibold tracking-[-0.05em]">
+                        {experience.title}
+                      </h3>
+                      <p className="text-lg text-muted-foreground">
+                        {experience.company}{" "}
+                        <span className="text-foreground/40">&bull;</span>{" "}
+                        {experience.location}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="w-fit">
-                    {exp.period}
+                  <Badge
+                    variant="secondary"
+                    className="w-fit rounded-full border border-white/10 bg-white/[0.05] px-4 py-2"
+                  >
+                    {experience.period}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-pretty text-sm text-muted-foreground">
-                  {exp.description}
+
+                <p className="max-w-2xl text-pretty text-sm leading-7 text-muted-foreground">
+                  {experience.description}
                 </p>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Key Achievements:</p>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    {exp.achievements.map((achievement, achIndex) => (
-                      <li key={achIndex}>• {achievement}</li>
-                    ))}
-                  </ul>
+
+                <div className="grid gap-3">
+                  {experience.achievements.map((achievement) => (
+                    <div
+                      key={achievement}
+                      className="flex gap-3 rounded-[1.2rem] border border-white/8 bg-black/20 px-4 py-4"
+                    >
+                      <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                      <p className="text-sm leading-7 text-muted-foreground">
+                        {achievement}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
           ))}
         </div>
       </div>
