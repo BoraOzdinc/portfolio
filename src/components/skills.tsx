@@ -34,8 +34,8 @@ export function Skills() {
       <div className="h-full space-y-8">
         <SectionHeading
           eyebrow="Capabilities"
-          title="Full-stack delivery backed by product thinking and technical range."
-          description="These capability groups stay close to the systems shown in the portfolio: web apps, data-heavy dashboards, and backend-connected workflows."
+          title="Full-stack delivery with a product focus."
+          description="A breakdown of core technical skills across frontend, backend, and web infrastructure."
         />
 
         <div className="grid gap-4">

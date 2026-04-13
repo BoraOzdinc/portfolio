@@ -71,13 +71,11 @@ export function Hero() {
             </div>
             <div className="space-y-4">
               <h1 className="max-w-4xl text-balance font-display text-5xl font-semibold tracking-[-0.06em] sm:text-6xl lg:text-[5rem]">
-                Full-Stack Web Engineer building sharp digital products with
-                precision.
+                Full-Stack Web Engineer.
               </h1>
               <p className="max-w-2xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
-                I design and build web products end to end, from polished
-                interfaces to backend systems that support real business
-                workflows.
+                I build production-grade web products with a focus on performance, 
+                clarity, and technical precision.
               </p>
             </div>
           </motion.div>
@@ -150,13 +148,8 @@ export function Hero() {
                 Selected Snapshot
               </p>
               <h2 className="text-balance font-display text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">
-                Product work across healthcare, AI analytics, commerce, and
-                internal operations.
+                Work across healthcare, AI, commerce, and internal operations.
               </h2>
-              <p className="text-sm leading-7 text-muted-foreground">
-                The details stay the same. The redesign frames them with more
-                intent, stronger composition, and cleaner motion.
-              </p>
             </div>
 
             <div className="space-y-3">

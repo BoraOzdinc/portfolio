@@ -160,6 +160,26 @@
   }
 }
 
+@keyframes nav-shimmer {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.42;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  88% {
+    opacity: 0.42;
+  }
+  100% {
+    transform: translate3d(420%, 0, 0);
+    opacity: 0;
+  }
+}
+
 .panel-surface {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
@@ -180,6 +200,10 @@
 
 .glow-orb {
   animation: drift 18s ease-in-out infinite;
+}
+
+.navbar-shimmer {
+  animation: nav-shimmer 7.5s linear infinite;
 }
 
 ::-webkit-scrollbar {

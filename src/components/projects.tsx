@@ -22,8 +22,8 @@ export function Projects() {
       <div className="space-y-8 sm:space-y-10">
         <SectionHeading
           eyebrow="Featured Projects"
-          title="Real products, real workflows, and web systems built to handle complexity."
-          description="Every project below keeps the same content and technical detail. The redesign focuses on how that work is framed, scanned, and explored."
+          title="Production-ready web systems built to handle complexity."
+          description="A selection of web products, from healthcare platforms to data-rich dashboards."
         />
 
         <div className="space-y-6">

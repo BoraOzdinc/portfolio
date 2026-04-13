@@ -25,8 +25,8 @@ export function Experience() {
       <div className="h-full space-y-8">
         <SectionHeading
           eyebrow="Experience"
-          title="Frontend product engineering with measurable gains in speed, clarity, and scale."
-          description="A concise record of the production environment where enterprise frontend systems, internal tooling, and API-connected interfaces were delivered."
+          title="Engineering production frontend systems at scale."
+          description="A record of delivering enterprise-grade web applications and internal tooling."
         />
 
         <div className="space-y-5">

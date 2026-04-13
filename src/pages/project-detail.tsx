@@ -182,7 +182,7 @@ export function ProjectDetailPage() {
                   Walkthrough
                 </p>
                 <h2 className="font-display text-3xl font-semibold tracking-[-0.05em]">
-                  Interface highlights and workflow screens
+                  Screenshots
                 </h2>
               </div>
 
@@ -253,7 +253,7 @@ export function ProjectDetailPage() {
                 My Role
               </p>
               <h2 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                End-to-end contribution
+                Role
               </h2>
               <p className="text-pretty text-sm leading-7 text-muted-foreground">
                 {project.role}
@@ -274,7 +274,7 @@ export function ProjectDetailPage() {
                   Key Features
                 </p>
                 <h2 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                  What the product had to do
+                  Key Features
                 </h2>
               </div>
               <div className="space-y-3">

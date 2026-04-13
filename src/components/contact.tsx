@@ -47,8 +47,8 @@ export function Contact() {
         <div className="space-y-6">
           <SectionHeading
             eyebrow="Contact"
-            title="Open to new projects, redesign work, and direct product questions."
-            description="This section is built as a proper inquiry entry point, not just a set of social links. Use the form for scoped work or a straightforward technical question."
+            title="Available for new projects."
+            description="Get in touch via the form for project inquiries or reach out directly through social channels."
           />
 
           <motion.div
