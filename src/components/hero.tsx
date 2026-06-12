@@ -71,7 +71,7 @@ export function Hero() {
             </div>
             <div className="space-y-4">
               <h1 className="max-w-4xl text-balance font-display text-5xl font-semibold tracking-[-0.06em] sm:text-6xl lg:text-[5rem]">
-                Full-Stack Web Engineer.
+                Full-Stack Developer.
               </h1>
               <p className="max-w-2xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
                 I build production-grade web products with a focus on performance, 
@@ -148,7 +148,7 @@ export function Hero() {
                 Selected Snapshot
               </p>
               <h2 className="text-balance font-display text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">
-                Work across healthcare, AI, commerce, and internal operations.
+                Work across healthcare, commerce, and internal operations.
               </h2>
             </div>
 

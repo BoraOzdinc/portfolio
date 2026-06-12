@@ -4,17 +4,28 @@ import { SectionHeading } from "@/components/section-heading";
 
 const experiences = [
   {
-    title: "Frontend Engineer",
+    title: "Frontend Developer",
     company: "Firefly",
     location: "Remote",
-    period: "June 2023 - August 2025",
+    period: "July 2023 - June 2025",
     description:
-      "Built and maintained client-side systems for enterprise products, with a focus on modular React architecture, analytics tooling, and tightly coordinated backend integrations.",
+      "Developed features for the Opportunity Manager platform within a micro-frontend product team, collaborating across product, design, and backend.",
     achievements: [
-      "Engineered and maintained multiple React-based client-side microservices, improving system modularity and reducing deployment times by 25%.",
-      "Integrated an interactive geographic mapping module for marketing teams, increasing campaign setup efficiency by 40%.",
-      "Built analytical calculation utilities directly into core platforms, accelerating reporting workflows by more than 30%.",
-      "Partnered with backend engineers on REST API design and data structures, reducing API latency by 20% while keeping the UI responsive.",
+      "Developed features for the Opportunity Manager platform using React, TypeScript, and a micro-frontend architecture.",
+      "Built interactive map-based targeting and calculation tools to support campaign planning and internal decision-making workflows.",
+      "Improved UI responsiveness and collaborated with cross-functional teams to deliver maintainable production features.",
+    ],
+  },
+  {
+    title: "IT Technician",
+    company: "Ramex Trading",
+    location: "UAE - Remote",
+    period: "October 2025 - Present",
+    description:
+      "Providing IT support and operational assistance across employee hardware and infrastructure coordination.",
+    achievements: [
+      "Troubleshoot employee computers, printers, and network-connected devices while supporting onboarding device setup.",
+      "Coordinate with the development team on server resource monitoring and operational support needs.",
     ],
   },
 ];
@@ -25,8 +36,8 @@ export function Experience() {
       <div className="h-full space-y-8">
         <SectionHeading
           eyebrow="Experience"
-          title="Engineering production frontend systems at scale."
-          description="A record of delivering enterprise-grade web applications and internal tooling."
+          title="Professional experience across development and IT support."
+          description="A record of frontend product delivery and operational support."
         />
 
         <div className="space-y-5">
@@ -47,7 +58,7 @@ export function Experience() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-3">
                     <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                      Career Highlight
+                      Career History
                     </p>
                     <div className="space-y-2">
                       <h3 className="font-display text-3xl font-semibold tracking-[-0.05em]">
