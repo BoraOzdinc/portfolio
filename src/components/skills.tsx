@@ -7,15 +7,15 @@ import { projects } from "@/data/projects";
 const skills = [
   {
     icon: Code2,
-    title: "Web Application Engineering",
+    title: "Frontend",
     description: "Building responsive, product-focused interfaces and application flows",
-    items: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
+    items: ["React", "Next.js", "TypeScript", "JavaScript", "HTML5", "CSS3", "Tailwind CSS", "Responsive UI"],
   },
   {
     icon: Database,
-    title: "Backend Systems",
+    title: "Backend & Tools",
     description: "Designing APIs, data models, and integrations that support production apps",
-    items: ["Node.js", "PostgreSQL", "REST APIs"],
+    items: ["Node.js", "PostgreSQL", "tRPC", "Drizzle ORM", "REST APIs", "Better Auth", "AWS S3", "Git"],
   },
 ];
 
