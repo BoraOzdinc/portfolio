@@ -48,6 +48,36 @@ function fixture() {
     .run();
   return store;
 }
+test("WWW requests redirect to the configured auth origin without losing paths or accepting foreign hosts", async () => {
+  const previous = process.env.BETTER_AUTH_URL;
+  const store = fixture();
+  try {
+    process.env.BETTER_AUTH_URL = "https://ozdinc.dev";
+    const app = createApp(store, null, async () => true);
+    await request(app)
+      .get("/backoffice?tab=finance")
+      .set("Host", "www.ozdinc.dev")
+      .expect(308)
+      .expect("Location", "https://ozdinc.dev/backoffice?tab=finance");
+    await request(app)
+      .get("//example.org/path")
+      .set("Host", "www.ozdinc.dev")
+      .expect(308)
+      .expect("Location", "https://ozdinc.dev//example.org/path");
+    await request(app)
+      .get("/api/missing")
+      .set("Host", "ozdinc.dev")
+      .expect(404);
+    await request(app)
+      .get("/api/missing")
+      .set("Host", "www.attacker.test")
+      .expect(404);
+  } finally {
+    store.sqlite.close();
+    if (previous === undefined) delete process.env.BETTER_AUTH_URL;
+    else process.env.BETTER_AUTH_URL = previous;
+  }
+});
 function expense(firstDue = "2026-01-31") {
   return planInput.parse({
     projectId: "melsa",

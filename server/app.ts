@@ -23,6 +23,19 @@ export function createApp(
 ) {
   const app = express();
   app.disable("x-powered-by");
+  const canonicalOrigin = process.env.BETTER_AUTH_URL
+    ? new URL(process.env.BETTER_AUTH_URL)
+    : null;
+  app.use((req, res, next) => {
+    if (
+      canonicalOrigin?.protocol === "https:" &&
+      req.hostname === `www.${canonicalOrigin.hostname}`
+    ) {
+      res.redirect(308, `${canonicalOrigin.origin}${req.originalUrl}`);
+      return;
+    }
+    next();
+  });
   app.use(["/backoffice", "/api/backoffice"], (_req, res, next) => {
     res.set("X-Robots-Tag", "noindex, nofollow");
     next();
@@ -30,11 +43,9 @@ export function createApp(
   if (authConfig) app.all("/api/auth/*splat", toNodeHandler(authConfig.auth));
   else
     app.use("/api/auth", (_req, res) =>
-      res
-        .status(503)
-        .json({
-          error: { message: "GitHub giriş ayarları henüz tamamlanmadı." },
-        }),
+      res.status(503).json({
+        error: { message: "GitHub giriş ayarları henüz tamamlanmadı." },
+      }),
     );
   app.use(express.json({ limit: "128kb" }));
   if (authConfig || identify)
@@ -49,11 +60,9 @@ export function createApp(
     );
   else
     app.use("/api/backoffice", (_req, res) =>
-      res
-        .status(503)
-        .json({
-          error: { message: "Backoffice giriş ayarları henüz tamamlanmadı." },
-        }),
+      res.status(503).json({
+        error: { message: "Backoffice giriş ayarları henüz tamamlanmadı." },
+      }),
     );
   app.post("/api/inquiry", async (req, res) => {
     try {
