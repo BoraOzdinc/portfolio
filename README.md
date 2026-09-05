@@ -1,4 +1,11 @@
-# React + TypeScript + Vite
+# Portfolio
+
+Public portfolio plus a project-based private backoffice at `/backoffice`.
+See [BACKOFFICE.md](./BACKOFFICE.md) for GitHub OAuth configuration, project/service billing, monitoring, VPS setup and backup/restore commands.
+
+Checks: `pnpm typecheck`, `pnpm lint`, `pnpm test`.
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

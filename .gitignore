@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.*
+!.env.example
+data/
+backups/
+*.sqlite*

@@ -5,9 +5,23 @@ import { ScrollToTop } from "./components/scroll-to-top";
 import { HomePage } from "./pages/home";
 import { ProjectDetailPage } from "./pages/project-detail";
 import { BusinessCardPage } from "./pages/business-card";
+import { lazy, Suspense } from "react";
+
+const Backoffice = lazy(() => import("./backoffice/backoffice"));
 
 function App() {
   const location = useLocation();
+
+  if (
+    location.pathname === "/backoffice" ||
+    location.pathname.startsWith("/backoffice/")
+  ) {
+    return (
+      <Suspense fallback={<div className="p-8">Yönetim alanı yükleniyor…</div>}>
+        <Backoffice />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
