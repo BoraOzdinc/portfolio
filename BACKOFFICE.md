@@ -54,6 +54,23 @@ pnpm db:restore /var/backups/portfolio/backoffice-YYYY-MM-DD.sqlite /var/lib/por
 
 Stop the service before changing `DATABASE_PATH` to the restored file. Retain the original database and its WAL files as a recovery point. Verify the restored application, then restart the service with the chosen database. Never copy only an active SQLite file without its WAL; use the backup command.
 
+## Isolated Docker deployment
+
+`deploy/compose.yaml` runs the application as a non-root user, with a read-only root filesystem, a 512 MiB memory limit, a dedicated network, and host port `127.0.0.1:3100`. It does not use the existing MelsaShopp ports 3000/3001 or its database/network. Only `/var/lib/portfolio` and `/var/backups/portfolio` are writable persistent mounts; create both with owner `1000:1000` and mode 700.
+
+Store production configuration in the ignored, mode-600 `.env.production`. Compose overrides host/port/database/backup paths for the container. Set the public `BETTER_AUTH_URL` and enable notification email explicitly. Build and start from the repository root:
+
+```sh
+docker compose -f deploy/compose.yaml build app
+docker compose -f deploy/compose.yaml up -d --no-build app
+docker compose -f deploy/compose.yaml ps
+docker exec portfolio_app node --import tsx server/backoffice/maintenance.ts backup
+```
+
+The optional `tunnel` profile reads `TUNNEL_TOKEN` from ignored `.env.tunnel`. Configure its published application origin as `http://app:3001`; then start with `docker compose -f deploy/compose.yaml --profile tunnel up -d tunnel`. Create/authorize the tunnel and DNS cutover separately; a healthy container alone is not proof of public reachability.
+
+Before subsequent releases, back up SQLite and tag the running image as a rollback image. Retain the old image and matching database backup. Before the first VPS cutover, both `ozdinc.dev` and `www.ozdinc.dev` were CNAMEs to `497388760d5c47e6.vercel-dns-017.com`, DNS-only, TTL 600 (observed 2026-09-05). Keep the Vercel deployment available for DNS rollback. Do not change unrelated subdomains or mail DNS records.
+
 ## Verification
 
 - `pnpm typecheck`
