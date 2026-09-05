@@ -71,6 +71,14 @@ The optional `tunnel` profile reads `TUNNEL_TOKEN` from ignored `.env.tunnel`. C
 
 Before subsequent releases, back up SQLite and tag the running image as a rollback image. Retain the old image and matching database backup. Before the first VPS cutover, both `ozdinc.dev` and `www.ozdinc.dev` were CNAMEs to `497388760d5c47e6.vercel-dns-017.com`, DNS-only, TTL 600 (observed 2026-09-05). Keep the Vercel deployment available for DNS rollback. Do not change unrelated subdomains or mail DNS records.
 
+### Live cutover: 2026-09-05
+
+- Both hostnames now use the proxied `portfolio-backoffice` tunnel (`97ebdc6b-1a55-4717-b5e1-c68db2cad3cf`), with origin `http://app:3001`. The application redirects `www` to the configured HTTPS auth origin, preserving path and query.
+- The VPS checkout is `/opt/portfolio`, branch `codex/portfolio-backoffice`. Pull/build/recreate that branch for future releases; Git pushes alone do not deploy to the VPS.
+- Vercel's Git repository connection was removed. Its project, configuration and old deployment remain available for rollback; the GitHub repository was not deleted.
+- Real GitHub sign-in, desktop/mobile rendering, public unauthenticated API rejection, www redirect, SQLite backup/restore and unchanged MelsaShopp endpoints were verified. Resend accepted a message to its official delivery-simulation address; this does not prove delivery to a personal inbox.
+- Application code release: `d6fbfc9`. Local disaster-recovery copies still need separate off-site storage.
+
 ## Verification
 
 - `pnpm typecheck`
