@@ -96,3 +96,9 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 - Rollback image: `portfolio-backoffice:rollback-20260912-before-home`. Pre-release SQLite backup: `/var/backups/portfolio/backoffice-2026-09-12.sqlite`. This release contains no database changes.
 - To roll back the UI, tag that rollback image as `portfolio-backoffice:latest`, then run `docker compose -f deploy/compose.yaml up -d --no-build --no-deps app` from `/opt/portfolio`. No database restore is needed for this frontend-only release.
 - After deployment the container was healthy with zero restarts, public routes returned 200, unauthenticated backoffice API requests returned 401, and the www redirect preserved path/query with 308. Existing MelsaShopp containers and endpoints remained available. Authenticated OAuth and live email delivery were not re-exercised.
+
+### Dark homepage revision: 2026-09-12
+
+- Supersedes the light homepage above. Code commit `68c08ce` restores the `ozdinc.dev_` wordmark, original typeface, and dark palette; removes the portrait; reduces the headline/gallery scale; adds restrained entrance, glow, cursor, menu, and hover effects.
+- Image `portfolio-backoffice:dark-68c08ce` is tagged `latest`. Release files: `/opt/portfolio-releases/dark-68c08ce`. Immediate rollback image: `portfolio-backoffice:rollback-before-dark-68c08ce`; the original pre-redesign rollback is also retained. Use the same tag-and-compose rollback procedure above.
+- Backend/runtime/data are unchanged. Build, typecheck, lint, and all 18 tests passed. Public asset hashes matched the build; desktop and 390 px mobile rendering, photo removal, menu/contact navigation, sticky header, and reduced-motion suppression were verified. The container is healthy with zero restarts; public project, backoffice API authorization, and both MelsaShopp endpoints passed checks.
