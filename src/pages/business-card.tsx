@@ -1,14 +1,16 @@
 import { Globe, Mail, Phone, Printer } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { FaGithub, FaLinkedinIn } from "react-icons/fa";
 
 export function BusinessCardPage() {
+  const reduceMotion = useReducedMotion();
   const handlePrint = () => window.print();
 
   return (
     <motion.main
+      id="main-content"
       className="mx-auto flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-12 px-4 py-12"
-      initial={{ opacity: 0 }}
+      initial={reduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1, transition: { duration: 0.3 } }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
     >

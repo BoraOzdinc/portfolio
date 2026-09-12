@@ -1,365 +1,144 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowUpRight, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowLeft, ArrowUpRight, Expand, X } from "lucide-react";
 import { getProjectBySlug, projects } from "@/data/projects";
+import "./project-detail.css";
 
-const pageTransition = {
-  initial: { opacity: 0, y: 20 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const },
-  },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-};
-
-const revealTransition = {
-  duration: 0.6,
-  ease: [0.22, 1, 0.36, 1] as const,
-};
+type Preview = { src: string; title: string };
 
 export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const project = slug ? getProjectBySlug(slug) : undefined;
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
-
-  const closeLightbox = useCallback(() => setLightboxSrc(null), []);
+  const reduceMotion = useReducedMotion();
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const closePreview = useCallback(() => setPreview(null), []);
 
   useEffect(() => {
-    if (!lightboxSrc) return;
+    const element = dialog.current;
+    if (!preview || !element) return;
 
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeLightbox();
-      }
-    };
-
+    const previousOverflow = document.body.style.overflow;
+    element.showModal();
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKey);
 
     return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKey);
+      element.close();
+      document.body.style.overflow = previousOverflow;
     };
-  }, [closeLightbox, lightboxSrc]);
+  }, [preview]);
 
-  if (!project) {
-    return <Navigate to="/" replace />;
-  }
+  if (!project) return <Navigate to="/projects" replace />;
 
-  const projectIndex =
-    projects.findIndex((entry) => entry.slug === project.slug) + 1;
-  const hasScreenshots = Boolean(project.screenshots?.length);
-
-  const stats = [
-    {
-      label: "features",
-      value: String(project.features.length).padStart(2, "0"),
-    },
-    {
-      label: "stack items",
-      value: String(project.tags.length).padStart(2, "0"),
-    },
-  ];
-
-  if (hasScreenshots) {
-    stats.splice(1, 0, {
-      label: "screens",
-      value: String(project.screenshots?.length ?? 0).padStart(2, "0"),
-    });
-  }
+  const nextProject = projects[(projects.indexOf(project) + 1) % projects.length];
 
   return (
-    <motion.main
-      className="mx-auto max-w-[90rem] px-4 pb-20 pt-6 sm:px-6 lg:px-8"
-      {...pageTransition}
-    >
-      <motion.section
-        className="panel-surface grid-overlay overflow-hidden rounded-[2rem] p-6 sm:p-8 lg:p-10"
-        initial={{ opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={revealTransition}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <Button variant="ghost" asChild className="rounded-full">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-          {project.link && (
-            <Button asChild className="rounded-full">
-              <a href={project.link} target="_blank" rel="noreferrer">
-                Visit Live Site
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </Button>
-          )}
-        </div>
-
-        <div className="mt-10 grid gap-10 xl:grid-cols-[0.92fr_1.08fr] xl:items-end">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Project {String(projectIndex).padStart(2, "0")}
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-balance font-display text-4xl font-semibold tracking-[-0.06em] sm:text-5xl lg:text-6xl">
-                {project.title}
-              </h1>
-              <p className="max-w-3xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
-                {project.description}
-              </p>
-              <p className="max-w-3xl text-pretty text-sm leading-7 text-muted-foreground sm:text-base">
-                {project.longDescription}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-[1.4rem] border border-white/10 bg-black/20 px-4 py-4"
-                >
-                  <p className="font-display text-3xl font-semibold tracking-[-0.05em]">
-                    {stat.value}
-                  </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <motion.div
-            className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-black/30"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ...revealTransition, delay: 0.08 }}
-          >
-            <img
-              src={project.image}
-              alt={project.title}
-              className="h-full w-full object-cover"
-            />
-          </motion.div>
-        </div>
-      </motion.section>
-
-      <div
-        className={
-          hasScreenshots
-            ? "mt-8 grid gap-8 xl:grid-cols-[1.08fr_0.92fr]"
-            : "mx-auto mt-8 max-w-5xl space-y-6"
-        }
-      >
-        {hasScreenshots ? (
-          <div className="space-y-8">
-            <motion.section
-              className="space-y-5"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.12 }}
-              transition={revealTransition}
-            >
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  Walkthrough
-                </p>
-                <h2 className="font-display text-3xl font-semibold tracking-[-0.05em]">
-                  Screenshots
-                </h2>
-              </div>
-
-              <div className="space-y-5">
-                {project.screenshots?.map((screenshot, index) => (
-                  <motion.article
-                    key={screenshot.title}
-                    className="panel-surface overflow-hidden rounded-[1.75rem] p-5 sm:p-6"
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.18 }}
-                    transition={{
-                      ...revealTransition,
-                      delay: Math.min(index * 0.05, 0.2),
-                    }}
-                  >
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                          Screen {String(index + 1).padStart(2, "0")}
-                        </p>
-                        <h3 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                          {screenshot.title}
-                        </h3>
-                        <p className="text-pretty text-sm leading-7 text-muted-foreground">
-                          {screenshot.description}
-                        </p>
-                      </div>
-
-                      {screenshot.image ? (
-                        <button
-                          type="button"
-                          className="group block w-full cursor-zoom-in overflow-hidden rounded-[1.4rem] border border-white/10 bg-black/30"
-                          onClick={() => setLightboxSrc(screenshot.image ?? null)}
-                        >
-                          <img
-                            src={screenshot.image}
-                            alt={screenshot.title}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                            loading="lazy"
-                          />
-                        </button>
-                      ) : null}
-                    </div>
-                  </motion.article>
-                ))}
-              </div>
-            </motion.section>
-          </div>
-        ) : null}
-
-        <div
-          className={
-            hasScreenshots
-              ? "space-y-6 xl:sticky xl:top-28 xl:self-start"
-              : "space-y-6"
-          }
-        >
-          <motion.section
-            className="panel-surface rounded-[1.75rem] p-6"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={revealTransition}
-          >
-            <div className="space-y-3">
-              <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                My Role
-              </p>
-              <h2 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                Role
-              </h2>
-              <p className="text-pretty text-sm leading-7 text-muted-foreground">
-                {project.role}
-              </p>
-            </div>
-          </motion.section>
-
-          <motion.section
-            className="panel-surface rounded-[1.75rem] p-6"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ ...revealTransition, delay: 0.05 }}
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  Key Features
-                </p>
-                <h2 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                  Key Features
-                </h2>
-              </div>
-              <div className="space-y-3">
-                {project.features.map((feature) => (
-                  <div
-                    key={feature}
-                    className="flex gap-3 rounded-[1.2rem] border border-white/8 bg-black/20 px-4 py-4"
-                  >
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                    <p className="text-sm leading-7 text-muted-foreground">
-                      {feature}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.section>
-
-          <motion.section
-            className="panel-surface rounded-[1.75rem] p-6"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ ...revealTransition, delay: 0.1 }}
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  Navigation
-                </p>
-                <h2 className="font-display text-2xl font-semibold tracking-[-0.04em]">
-                  Continue browsing
-                </h2>
-              </div>
-              <div className="flex flex-col gap-3">
-                {project.link && (
-                  <Button asChild className="rounded-full">
-                    <a href={project.link} target="_blank" rel="noreferrer">
-                      Visit Live Site
-                      <ArrowUpRight className="h-4 w-4" />
-                    </a>
-                  </Button>
-                )}
-                <Button
-                  asChild
-                  variant="outline"
-                  className="rounded-full border-white/15 bg-white/[0.02]"
-                >
-                  <Link to="/">Back to Portfolio</Link>
-                </Button>
-              </div>
-            </div>
-          </motion.section>
-        </div>
+    <main id="main-content" className="project-detail home-container">
+      <div className="project-breadcrumb">
+        <Link to="/projects"><ArrowLeft size={16} aria-hidden="true" />All projects</Link>
+        {project.link && (
+          <a href={project.link} target="_blank" rel="noreferrer">
+            Visit website <ArrowUpRight size={16} aria-hidden="true" />
+          </a>
+        )}
       </div>
 
-      <AnimatePresence>
-        {lightboxSrc && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeLightbox}
-          >
-            <button
-              type="button"
-              className="absolute right-4 top-4 rounded-full border border-white/10 bg-black/40 p-2 text-white transition hover:bg-black/60"
-              onClick={closeLightbox}
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <motion.img
-              src={lightboxSrc}
-              alt="Screenshot preview"
-              className="max-h-[90vh] max-w-[90vw] rounded-[1.25rem] object-contain"
-              initial={{ scale: 0.94, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={(event) => event.stopPropagation()}
-            />
-          </motion.div>
+      <motion.div
+        className="project-intro"
+        initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <h1>{project.title}</h1>
+        <p>{project.description}</p>
+      </motion.div>
+
+      <button
+        className="project-cover project-image-button"
+        type="button"
+        aria-label={`Enlarge ${project.title} overview`}
+        onClick={() => setPreview({ src: project.image, title: project.title })}
+      >
+        <img src={project.image} alt={`${project.title} overview`} fetchPriority="high" />
+        <span className="project-expand"><Expand size={18} aria-hidden="true" /></span>
+      </button>
+
+      <div className="project-overview">
+        <section aria-labelledby="project-about-title">
+          <h2 id="project-about-title">About the project</h2>
+          <p>{project.longDescription}</p>
+          <h2 className="project-role-title">My role</h2>
+          <p>{project.role}</p>
+        </section>
+        <aside aria-labelledby="project-stack-title" className="project-stack">
+          <h2 id="project-stack-title">Built with</h2>
+          <ul>{project.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
+          <Link className="home-text-link" to="/#contact">Talk about a project <ArrowUpRight size={16} aria-hidden="true" /></Link>
+        </aside>
+      </div>
+
+      <section className="project-features" aria-labelledby="project-features-title">
+        <h2 id="project-features-title">What it does</h2>
+        <ul>{project.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+      </section>
+
+      {Boolean(project.screenshots?.length) && (
+        <section className="project-walkthrough" aria-labelledby="project-screens-title">
+          <div className="home-section-heading">
+            <h2 id="project-screens-title">A closer look</h2>
+            <p>Select an image to expand it.</p>
+          </div>
+          <div className="project-screens">
+            {project.screenshots?.map((screenshot) => (
+              <article key={screenshot.title} className={screenshot.image ? "project-screen" : "project-screen project-screen-note"}>
+                {screenshot.image && (
+                  <button
+                    className="project-image-button"
+                    type="button"
+                    aria-label={`Enlarge ${screenshot.title}`}
+                    onClick={() => { if (screenshot.image) setPreview({ src: screenshot.image, title: screenshot.title }); }}
+                  >
+                    <img src={screenshot.image} alt={screenshot.title} loading="lazy" decoding="async" />
+                    <span className="project-expand"><Expand size={17} aria-hidden="true" /></span>
+                  </button>
+                )}
+                <h3>{screenshot.title}</h3>
+                <p>{screenshot.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="project-next">
+        <Link to="/projects" className="home-text-link"><ArrowLeft size={16} aria-hidden="true" />All projects</Link>
+        {nextProject && (
+          <Link className="project-next-link" to={`/projects/${nextProject.slug}`}>
+            <span><small>Next project</small><strong>{nextProject.title}</strong></span>
+            <ArrowUpRight size={26} aria-hidden="true" />
+          </Link>
         )}
-      </AnimatePresence>
-    </motion.main>
+      </div>
+
+      <dialog
+        ref={dialog}
+        className="project-lightbox"
+        aria-label={preview ? `${preview.title} image preview` : "Image preview"}
+        onCancel={closePreview}
+        onClose={closePreview}
+        onClick={(event) => { if (event.target === event.currentTarget) closePreview(); }}
+      >
+        {preview && (
+          <>
+            <button type="button" className="project-lightbox-close" aria-label="Close image" onClick={closePreview} autoFocus><X size={22} /></button>
+            <figure>
+              <img src={preview.src} alt={preview.title} />
+              <figcaption>{preview.title}</figcaption>
+            </figure>
+          </>
+        )}
+      </dialog>
+    </main>
   );
 }

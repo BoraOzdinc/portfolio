@@ -10,11 +10,12 @@ const projectPresentation: Record<string, { category: string; summary: string }>
   "data-crispy": { category: "AI & analytics", summary: "Ask a question. Turn business data into something useful." },
 };
 
-export function Projects() {
+export function Projects({ standalone = false }: { standalone?: boolean }) {
+  const Heading = standalone ? "h1" : "h2";
   return (
     <section id="projects" className="home-work home-container" aria-labelledby="work-title">
       <div className="home-section-heading">
-        <h2 id="work-title">Selected work<span className="home-count">({projects.length})</span></h2>
+        <Heading id="work-title">{standalone ? "Projects" : "Selected work"}<span className="home-count">({projects.length})</span></Heading>
         <p>A few things I’ve designed and built.</p>
       </div>
       <div className="home-project-grid">
