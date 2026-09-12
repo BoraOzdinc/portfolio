@@ -1,24 +1,31 @@
 import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 export function Hero() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section className="home-hero home-container" aria-labelledby="hero-title">
-      <div className="home-hero-copy">
-        <p className="home-intro">Hi, I’m Bora. A full-stack developer.</p>
-        <h1 id="hero-title">Complex problems.<br />Clear interfaces.<br />Carefully built.</h1>
-        <p className="home-hero-description">I build web products that make everyday work easier. From healthcare platforms to commerce tools, I take care of the details on both sides of the screen.</p>
+      <div className="home-hero-light" aria-hidden="true" />
+      <motion.div
+        className="home-hero-copy"
+        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <p className="home-intro">Hi, I’m Bora.</p>
+        <h1 id="hero-title">Full-stack developer.</h1>
+        <p className="home-hero-description">
+          I build websites and web apps, from the interface to the systems
+          behind it. I like keeping things simple, useful, and easy to work with.
+        </p>
         <div className="home-hero-actions">
-          <a className="home-button" href="#projects">Explore my work <ArrowDown size={18} aria-hidden="true" /></a>
-          <a className="home-text-link" href="#contact">Have something in mind? <ArrowUpRight size={18} aria-hidden="true" /></a>
+          <a className="home-button" href="#projects">View my work <ArrowDown size={17} aria-hidden="true" /></a>
+          <a className="home-text-link" href="#contact">Get in touch <ArrowUpRight size={17} aria-hidden="true" /></a>
         </div>
-      </div>
-      <div className="home-portrait">
-        <div className="home-portrait-backdrop" />
-        <img src="/image.png" alt="Bora Özdinç" width="1852" height="1734" fetchPriority="high" />
-        <div className="home-portrait-caption"><span className="home-status-dot" />Available for project work</div>
-      </div>
+      </motion.div>
       <div className="home-hero-bottom">
-        <p>Interfaces with purpose. Systems with staying power.</p>
+        <p className="home-availability"><span className="home-status-dot" />Open to project work</p>
         <span>React <span aria-hidden="true">/</span> TypeScript <span aria-hidden="true">/</span> Node.js</span>
       </div>
     </section>

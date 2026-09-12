@@ -15,7 +15,7 @@ export function Projects() {
     <section id="projects" className="home-work home-container" aria-labelledby="work-title">
       <div className="home-section-heading">
         <h2 id="work-title">Selected work<span className="home-count">({projects.length})</span></h2>
-        <p>Real products. Different challenges.<br />The same attention to how they work.</p>
+        <p>A few things I’ve designed and built.</p>
       </div>
       <div className="home-project-grid">
         {projects.map((project) => {

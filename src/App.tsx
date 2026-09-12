@@ -24,7 +24,7 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.03),transparent_22%)]" />
         <div className="glow-orb absolute left-[-10rem] top-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />

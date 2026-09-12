@@ -7,8 +7,8 @@ export function Experience() {
   return (
     <section id="experience" className="home-experience home-container" aria-labelledby="experience-title">
       <div className="home-experience-intro">
-        <h2 id="experience-title">A little background.</h2>
-        <p>Product development and hands-on IT experience. An understanding of the interface, and the infrastructure it depends on.</p>
+        <h2 id="experience-title">Experience</h2>
+        <p>My background spans frontend development and hands-on IT support.</p>
       </div>
       <div className="home-experience-list">
         {experiences.map((experience) => (

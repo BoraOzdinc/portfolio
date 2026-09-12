@@ -20,8 +20,8 @@ export function HomePage() {
         <Contact />
       </main>
       <footer className="home-footer home-container">
-        <a className="home-wordmark" href="#top">Bora Özdinç<span>.</span></a>
-        <p>Thoughtfully built, from interface to infrastructure.</p>
+        <a className="home-wordmark" href="#top">ozdinc.dev<span className="home-cursor" aria-hidden="true">_</span></a>
+        <p>Thanks for stopping by.</p>
         <div className="home-footer-links">
           <a href="https://github.com/BoraOzdinc" target="_blank" rel="noreferrer" aria-label="GitHub (opens in a new tab)"><Github size={19} /></a>
           <a href="https://www.linkedin.com/in/boraozdinc" target="_blank" rel="noreferrer" aria-label="LinkedIn (opens in a new tab)"><Linkedin size={19} /></a>

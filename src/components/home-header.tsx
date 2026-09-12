@@ -25,11 +25,11 @@ export function HomeHeader() {
 
   return (
     <header className="home-header home-container">
-      <a className="home-wordmark" href="#top" aria-label="Bora Özdinç, home">Bora Özdinç<span>.</span></a>
+      <a className="home-wordmark" href="#top" aria-label="ozdinc.dev, home">ozdinc.dev<span className="home-cursor" aria-hidden="true">_</span></a>
       <nav className="home-desktop-nav" aria-label="Main navigation">
         {navigation.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
       </nav>
-      <a className="home-header-contact" href="#contact">Let’s talk <ArrowUpRight size={17} aria-hidden="true" /></a>
+      <a className="home-header-contact" href="#contact">Contact <ArrowUpRight size={17} aria-hidden="true" /></a>
       <button ref={menuButton} type="button" className="home-menu-button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="home-mobile-nav" onClick={() => setMenuOpen(!menuOpen)}>
         {menuOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
