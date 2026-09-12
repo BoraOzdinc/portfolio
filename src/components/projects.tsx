@@ -12,6 +12,7 @@ const projectPresentation: Record<string, { category: string; summary: string }>
 
 export function Projects({ standalone = false }: { standalone?: boolean }) {
   const Heading = standalone ? "h1" : "h2";
+  const ProjectHeading = standalone ? "h2" : "h3";
   return (
     <section id="projects" className="home-work home-container" aria-labelledby="work-title">
       <div className="home-section-heading">
@@ -30,7 +31,7 @@ export function Projects({ standalone = false }: { standalone?: boolean }) {
               <div className="home-project-meta">
                 <div>
                   <p className="home-project-category">{presentation?.category ?? project.tags[0]}</p>
-                  <h3><Link to={`/projects/${project.slug}`}>{project.title}</Link></h3>
+                  <ProjectHeading><Link to={`/projects/${project.slug}`}>{project.title}</Link></ProjectHeading>
                 </div>
                 {project.link && <a href={project.link} target="_blank" rel="noreferrer" className="home-live-link" aria-label={`Visit ${project.title} website (opens in a new tab)`}>Live site <ArrowUpRight size={15} aria-hidden="true" /></a>}
               </div>

@@ -76,8 +76,8 @@
 .home-project-image:hover .home-project-open { transform: rotate(45deg); }
 .home-project-meta { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 15px; }
 .home-project-category { font-size: 11px; color: var(--home-muted); margin-bottom: 4px; }
-.home-project h3 { font-size: 20px; letter-spacing: -0.035em; font-weight: 500; }
-.home-project h3 a:hover { text-decoration: underline; }
+.home-project :is(h2, h3) { font-size: 20px; letter-spacing: -0.035em; font-weight: 500; }
+.home-project :is(h2, h3) a:hover { text-decoration: underline; }
 .home-live-link { display: flex; align-items: center; gap: 5px; color: var(--home-muted); font-size: 11px; white-space: nowrap; }
 .home-live-link:hover { color: var(--home-ink); }
 .home-project-summary { margin-top: 7px; color: var(--home-muted); font-size: 13px; max-width: 65ch; }
@@ -156,7 +156,7 @@
   .home-section-heading > p { font-size: 12px; }
   .home-project-grid { grid-template-columns: 1fr; gap: 30px; }
   .home-project-image { aspect-ratio: 1.8; padding: 20px; }
-  .home-project h3 { font-size: 20px; }
+  .home-project :is(h2, h3) { font-size: 20px; }
   .home-project-meta { padding-top: 12px; }
   .home-project-summary { font-size: 12px; }
   .home-capabilities { padding-block: 44px; }
