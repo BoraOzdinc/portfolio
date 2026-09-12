@@ -1,25 +1,33 @@
-import { motion } from "motion/react";
+import { ArrowUpRight, Github, Linkedin } from "lucide-react";
+import { HomeHeader } from "@/components/home-header";
 import { Hero } from "@/components/hero";
 import { Projects } from "@/components/projects";
 import { Skills } from "@/components/skills";
 import { Experience } from "@/components/experience";
 import { Contact } from "@/components/contact";
+import "./home.css";
 
 export function HomePage() {
   return (
-    <motion.main
-      className="mx-auto max-w-[90rem] px-4 pb-20 pt-6 sm:px-6 lg:px-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.35 } }}
-      exit={{ opacity: 0, transition: { duration: 0.2 } }}
-    >
-      <Hero />
-      <Projects />
-      <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+    <div className="portfolio-home" id="top">
+      <a className="home-skip-link" href="#main-content">Skip to content</a>
+      <HomeHeader />
+      <main id="main-content">
+        <Hero />
+        <Projects />
         <Skills />
         <Experience />
-      </div>
-      <Contact />
-    </motion.main>
+        <Contact />
+      </main>
+      <footer className="home-footer home-container">
+        <a className="home-wordmark" href="#top">Bora Özdinç<span>.</span></a>
+        <p>Thoughtfully built, from interface to infrastructure.</p>
+        <div className="home-footer-links">
+          <a href="https://github.com/BoraOzdinc" target="_blank" rel="noreferrer" aria-label="GitHub (opens in a new tab)"><Github size={19} /></a>
+          <a href="https://www.linkedin.com/in/boraozdinc" target="_blank" rel="noreferrer" aria-label="LinkedIn (opens in a new tab)"><Linkedin size={19} /></a>
+          <a href="#top">Back to top <ArrowUpRight size={16} aria-hidden="true" /></a>
+        </div>
+      </footer>
+    </div>
   );
 }

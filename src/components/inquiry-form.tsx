@@ -1,6 +1,5 @@
 import { type ChangeEvent, type FormEvent, useState } from "react";
-import { motion } from "motion/react";
-import { ArrowUpRight, Mail } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const EMAIL_ADDRESS = "boraozdinc@hotmail.com";
@@ -26,7 +25,7 @@ const initialFormState: InquiryFormState = {
 };
 
 const fieldClassName =
-  "w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/75 focus:border-white/25 focus:bg-black/30 focus:ring-2 focus:ring-white/10";
+  "inquiry-field";
 
 export function InquiryForm() {
   const [formData, setFormData] = useState(initialFormState);
@@ -73,7 +72,7 @@ export function InquiryForm() {
 
       setFormData(initialFormState);
       setStatusMessage(
-        "Inquiry sent successfully. I will receive it in my inbox."
+        "Thanks for sharing your project. Your inquiry has been sent."
       );
     } catch (error) {
       setStatusMessage(
@@ -87,20 +86,9 @@ export function InquiryForm() {
   };
 
   return (
-    <motion.div
-      className="panel-surface grid-overlay relative overflow-hidden rounded-[1.75rem] p-6 sm:p-8"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <div className="pointer-events-none absolute inset-x-10 top-0 h-24 rounded-full bg-white/10 blur-3xl" />
+    <div className="home-inquiry">
       <div className="relative space-y-6">
         <div className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            <Mail className="h-3.5 w-3.5" />
-            Inquiry Form
-          </div>
           <div className="space-y-2">
             <h3 className="font-display text-2xl font-semibold tracking-[-0.04em]">
               Tell me what you&apos;re building
@@ -119,6 +107,7 @@ export function InquiryForm() {
               <input
                 className={fieldClassName}
                 name="name"
+                autoComplete="name"
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
@@ -131,6 +120,7 @@ export function InquiryForm() {
               <input
                 className={fieldClassName}
                 name="email"
+                autoComplete="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -146,6 +136,7 @@ export function InquiryForm() {
               <input
                 className={fieldClassName}
                 name="company"
+                autoComplete="organization"
                 type="text"
                 value={formData.company}
                 onChange={handleChange}
@@ -153,7 +144,7 @@ export function InquiryForm() {
               />
             </label>
             <label className="space-y-2 text-sm">
-              <span className="block text-muted-foreground">Inquiry Type</span>
+              <span className="block text-muted-foreground">Inquiry type</span>
               <select
                 className={fieldClassName}
                 name="inquiryType"
@@ -168,7 +159,7 @@ export function InquiryForm() {
             </label>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-[1.35fr_0.65fr]">
+          <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-2 text-sm">
               <span className="block text-muted-foreground">Subject</span>
               <input
@@ -189,7 +180,7 @@ export function InquiryForm() {
                 type="text"
                 value={formData.timeline}
                 onChange={handleChange}
-                placeholder="e.g. April launch"
+                placeholder="Your target date"
               />
             </label>
           </div>
@@ -235,7 +226,7 @@ export function InquiryForm() {
               className="rounded-full px-6"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : "Send Inquiry"}
+              {isSubmitting ? "Sending..." : "Send inquiry"}
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </div>
@@ -248,6 +239,6 @@ export function InquiryForm() {
           {statusMessage}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
