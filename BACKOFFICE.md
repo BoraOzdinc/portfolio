@@ -86,3 +86,13 @@ Before subsequent releases, back up SQLite and tag the running image as a rollba
 - `pnpm test` (SQLite/domain/API tests and React interaction tests)
 
 Tests use temporary databases, mocked mail/probes and mock frontend transport. No live payments, email or GitHub login are performed. Real GitHub OAuth round-trip, real Resend delivery and desktop/mobile browser layout remain release checks requiring configured services and an available frontend server. Development servers and production builds are not launched by tests.
+
+### Homepage release: 2026-09-12
+
+- The deployed checkout now tracks `codex/homepage-redesign-release`. Homepage code commit: `ba180d5`. This branch includes the existing backoffice; do not deploy the older `main` checkout over it.
+- Validation passed: typecheck, lint, 14 backend tests, 4 React tests, and the production build. Public JS/CSS hashes matched the local build. Desktop and 390 px mobile rendering, menu/contact navigation, required-field validation, and project navigation were exercised in a browser.
+- To avoid a dependency rebuild on the space-constrained VPS, the frontend was built locally from this branch. Image `portfolio-backoffice:home-ba180d5` layers only the resulting `dist` over the previous runtime; backend code, dependencies, environment, and data mounts remain unchanged. The standard repository Dockerfile remains valid for a future full build.
+- Deployed image is also tagged `portfolio-backoffice:latest`. Release files and the small image recipe are retained at `/opt/portfolio-releases/home-ba180d5`.
+- Rollback image: `portfolio-backoffice:rollback-20260912-before-home`. Pre-release SQLite backup: `/var/backups/portfolio/backoffice-2026-09-12.sqlite`. This release contains no database changes.
+- To roll back the UI, tag that rollback image as `portfolio-backoffice:latest`, then run `docker compose -f deploy/compose.yaml up -d --no-build --no-deps app` from `/opt/portfolio`. No database restore is needed for this frontend-only release.
+- After deployment the container was healthy with zero restarts, public routes returned 200, unauthenticated backoffice API requests returned 401, and the www redirect preserved path/query with 308. Existing MelsaShopp containers and endpoints remained available. Authenticated OAuth and live email delivery were not re-exercised.
