@@ -17,7 +17,7 @@ export function Projects({ standalone = false }: { standalone?: boolean }) {
     <section id="projects" className="home-work home-container" aria-labelledby="work-title">
       <div className="home-section-heading">
         <Heading id="work-title">{standalone ? "Projects" : "Selected work"}<span className="home-count">({projects.length})</span></Heading>
-        <p>A few things I’ve designed and built.</p>
+        <p>Websites, applications, and the systems behind them.<br />Explore the work, the decisions, and what I built.</p>
       </div>
       <div className="home-project-grid">
         {projects.map((project) => {
