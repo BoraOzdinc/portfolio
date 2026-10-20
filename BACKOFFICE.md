@@ -100,7 +100,7 @@ Migration `0001` only adds tables. Take the usual SQLite backup before deploying
 
 - **Entry:** a clock range (office: planned exit → actual exit, early exit counts 0; remote: start → end, wraps midnight) or a declared duration only (travel, unclear hours). Any number per day, editable later.
 - **Payment status:** each entry is “Bekliyor” until marked paid against a payslip month (bulk select → “Ödendi işaretle”). Unpaid hours across all months are shown with expected net pay = net salary ÷ 225 × 1,5 per hour, matching the August 2026 payslip (65.000 → 433,33 TL/h). BES (~3 % of gross) is not subtracted. Net salary lives in `settings.netSalary` (kuruş).
-- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` returns `mesai-YYYY-MM.xlsx` in the employer declaration layout: title row, Tarih (date cell), Gün, Fazla Mesai Süresi (`[h]:mm` duration cell), Birim, Nedeni, Saat Aralığı, and a `SUM` total. Written by the dependency-free `server/backoffice/xlsx.ts` (single sheet, stored zip, inline strings, so text is never evaluated as a formula); checked with openpyxl and `unzip -t`.
+- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` returns `mesai-YYYY-MM.xlsx` in the employer declaration layout: owner name row (`settings.ownerName`, edited with net salary under “Bordro bilgileri”), title row, Tarih (date cell), Gün, Fazla Mesai Süresi (`[h]:mm` duration cell), Birim, Nedeni, Saat Aralığı, and a `SUM` total. Written by the dependency-free `server/backoffice/xlsx.ts` (single sheet, stored zip, inline strings, so text is never evaluated as a formula); checked with openpyxl and `unzip -t`.
 - Migration `0004` rebuilds `workSessions` to make times nullable. drizzle-kit generated an INSERT selecting the new columns from the old table; it was corrected by hand to select `NULL` and checked against a populated database.
 
 ## Verification
@@ -160,3 +160,7 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 ### xlsx export: 2026-10-20
 
 - Commit `3ae6659`, code only. Image `portfolio-backoffice:xlsx-3ae6659` (also `latest`) over `work2-0cc3d7d`; rollback image `portfolio-backoffice:rollback-before-xlsx-3ae6659`, no database step. September exported from production opened in openpyxl with typed dates, durations and the SUM formula.
+
+### Owner name row: 2026-10-20
+
+- Commit `31a9447`, code only (settings key `ownerName` set to the owner's name). Image `portfolio-backoffice:owner-31a9447` (also `latest`); rollback image `portfolio-backoffice:rollback-before-owner-31a9447`. `PUT /work/salary` became `PUT /work/settings` with `netSalary` and `ownerName`.
