@@ -32,20 +32,16 @@ export const overtimeHourly = (netSalary: number) =>
 export const overtimeAmount = (netSalary: number, minutes: number) =>
   Math.round((netSalary * 1.5 * minutes) / (225 * 60));
 
-function netSalary(db: DB) {
-  const row = db
-    .select()
-    .from(s.settings)
-    .where(eq(s.settings.key, "netSalary"))
-    .get();
-  return row ? Number(row.value) : null;
-}
+const setting = (db: DB, key: "netSalary" | "ownerName") =>
+  db.select().from(s.settings).where(eq(s.settings.key, key)).get()?.value ??
+  null;
 
 export function workSnapshot(db: DB, query: Record<string, unknown> = {}) {
   const day = today();
   const selected =
     period.optional().parse(query.month || undefined) ?? day.slice(0, 7);
-  const salary = netSalary(db);
+  const stored = setting(db, "netSalary");
+  const salary = stored === null ? null : Number(stored);
   const amount = (minutes: number) =>
     salary === null ? null : overtimeAmount(salary, minutes);
   const sessions = db
@@ -71,6 +67,7 @@ export function workSnapshot(db: DB, query: Record<string, unknown> = {}) {
     month: selected,
     sessions,
     salary,
+    ownerName: setting(db, "ownerName") ?? "",
     hourly: salary === null ? null : overtimeHourly(salary),
     totals: {
       office: total("office"),
@@ -100,13 +97,17 @@ const weekday = (date: string) =>
  */
 export function workXlsx(data: WorkSnapshot) {
   const title = `${monthName(data.month)} Ayı Ekstra Süreler`;
-  const first = 3,
-    last = first + data.sessions.length - 1;
   const bold = (v: string) => ({ v, s: Style.Bold });
+  const head = [
+    ...(data.ownerName ? [[bold(data.ownerName)]] : []),
+    [bold(title)],
+  ];
+  const first = head.length + 2,
+    last = first + data.sessions.length - 1;
   return xlsx(
     `${monthName(data.month)} ${data.month.slice(0, 4)}`,
     [
-      [bold(title)],
+      ...head,
       [
         "Tarih",
         "Gün",
@@ -185,16 +186,23 @@ export function workRouter(db: DB) {
       throw new HttpError(404, "Bazı kayıtlar bulunamadı.");
     res.json({ data: { changed } });
   });
-  router.put("/salary", (req, res) => {
-    const { netSalary } = z
-      .object({ netSalary: z.number().int().min(1).max(100_000_000_000) })
+  router.put("/settings", (req, res) => {
+    const input = z
+      .object({
+        netSalary: z.number().int().min(1).max(100_000_000_000),
+        ownerName: z.string().trim().max(160).default(""),
+      })
       .parse(req.body);
-    const row = { key: "netSalary", value: String(netSalary) };
-    db.insert(s.settings)
-      .values(row)
-      .onConflictDoUpdate({ target: s.settings.key, set: row })
-      .run();
-    res.json({ data: { netSalary } });
+    db.transaction((tx) => {
+      for (const [key, value] of Object.entries(input)) {
+        const row = { key, value: String(value) };
+        tx.insert(s.settings)
+          .values(row)
+          .onConflictDoUpdate({ target: s.settings.key, set: row })
+          .run();
+      }
+    });
+    res.json({ data: input });
   });
   router.patch("/:id", (req, res) => {
     const existing = one(req.params.id);

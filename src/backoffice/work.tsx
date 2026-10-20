@@ -160,7 +160,7 @@ export function Work() {
           <p>
             Ödenmemiş saatlerin kaç TL ettiğini görmek için net maaşını gir.{" "}
             <button className="bo-link" onClick={() => setSalaryOpen(true)}>
-              Net maaşı gir
+              Bilgileri gir
             </button>
           </p>
         ) : (
@@ -496,19 +496,27 @@ export function Work() {
         </Modal>
       )}
       {salaryOpen && (
-        <Modal title="Net maaş" close={() => setSalaryOpen(false)}>
+        <Modal title="Bordro bilgileri" close={() => setSalaryOpen(false)}>
           <form
             className="bo-form"
             onSubmit={(e) => {
               e.preventDefault();
-              const value = Number(new FormData(e.currentTarget).get("salary"));
+              const fd = new FormData(e.currentTarget);
               void run(() =>
-                api("/work/salary", "PUT", {
-                  netSalary: Math.round(value * 100),
+                api("/work/settings", "PUT", {
+                  netSalary: Math.round(Number(fd.get("salary")) * 100),
+                  ownerName: String(fd.get("ownerName") ?? ""),
                 }),
               ).then((ok) => ok && setSalaryOpen(false));
             }}
           >
+            <Field label="Ad soyad (Excel’in en üstünde)">
+              <input
+                name="ownerName"
+                maxLength={160}
+                defaultValue={data.ownerName}
+              />
+            </Field>
             <Field label="Sözleşmedeki aylık net maaş (TL)">
               <input
                 type="number"

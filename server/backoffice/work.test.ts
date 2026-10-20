@@ -93,7 +93,10 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
       [360, 240, 120, 60],
     );
 
-    await send("put", "/salary", { netSalary: 6_500_000 }).expect(200);
+    await send("put", "/settings", {
+      netSalary: 6_500_000,
+      ownerName: "Bora Kaan Özdinç",
+    }).expect(200);
     await send("post", "/pay", {
       ids: [travel.id, office.id],
       paidPeriod: "2026-10",
@@ -152,14 +155,16 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
     const sheet = zip.toString("utf8");
     for (const part of [
       '<sheet name="Ekim 2026"',
+      '<c r="A1" s="1" t="inlineStr"><is><t xml:space="preserve">Bora Kaan Özdinç</t>',
+      '<c r="A2" s="1" t="inlineStr"><is><t xml:space="preserve">Ekim Ayı Ekstra Süreler</t>',
       ">Ekim Ayı Ekstra Süreler</t>",
       ">Fazla Mesai Süresi</t>",
-      `<c r="A3" s="2"><v>${excelDate("2026-10-02")}</v></c>`,
-      `<c r="C3" s="3"><v>${360 / 1440}</v></c>`,
+      `<c r="A4" s="2"><v>${excelDate("2026-10-02")}</v></c>`,
+      `<c r="C4" s="3"><v>${360 / 1440}</v></c>`,
       ">İlknak (İzmir) Dönüş Yolculuğu</t>",
       ">=HYPERLINK(&quot;x&quot;)</t>",
       ">21:00–22:00</t>",
-      "<f>SUM(C3:C6)</f>",
+      "<f>SUM(C4:C7)</f>",
     ])
       assert.ok(sheet.includes(part), part);
 
