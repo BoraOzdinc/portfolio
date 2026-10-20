@@ -88,6 +88,8 @@ Before subsequent releases, back up SQLite and tag the running image as a rollba
 - **Hesaplar ve yatırımlar:** account balances are entered by hand. Each purchase is its own lot; lots with the same asset name are summed with a weighted average cost. USD/EUR prices come from TCMB's ForexBuying every 6 hours (overwriting a manual value); gold and anything else is priced by hand.
 - **Ledger:** 12 months, minimum vs full card payment. The projected balance starts from today's account total and adds only cash that has not moved yet: items later this month, future months, and unpaid statements (including overdue ones). Months without a statement show no card payment.
 
+- **Hareketler:** dated actual entries. One linked to a planned item replaces that item's plan for its month (several links are summed); unlinked ones are extras. Month detail shows plan vs actual and “Plana göre” variance. Past-dated entries are assumed to be in the account balance already; only future-dated ones move the projection. Deleting an item keeps its entries as unplanned.
+
 Net worth = accounts + priced investments − unpaid statement balances. Unpriced assets are listed, not guessed.
 
 Migration `0001` only adds tables. Take the usual SQLite backup before deploying it.
@@ -128,3 +130,9 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 - Image `portfolio-backoffice:budget-06c8474` (also `latest`) layers the local `dist`, `server` and `shared` over `homepage-eb8e15f`. Release files: `/opt/portfolio-releases/budget-06c8474`.
 - Rollback image: `portfolio-backoffice:rollback-before-budget-06c8474`, same tag-and-compose procedure. The older code ignores the extra tables, so no database restore is needed. Backups: `/var/backups/portfolio/backoffice-2026-10-20.sqlite` (before migration, taken at 00:00) and `after-budget-06c8474.sqlite`.
 - Verified: container healthy, migration applied, TCMB USD/EUR prices fetched on first tick, public routes 200, unauthenticated budget API 401, public asset hash matches the build, MelsaShopp containers untouched. Authenticated UI was not exercised.
+
+### Actuals release: 2026-10-20
+
+- Commit `a943bc2`. Migration `0002` adds the `transactions` table only. Image `portfolio-backoffice:actuals-a943bc2` (also `latest`) layers over `budget-06c8474`; release files `/opt/portfolio-releases/actuals-a943bc2`.
+- Pre-migration backup: `/var/backups/portfolio/pre-actuals-a943bc2.sqlite`. Rollback image: `portfolio-backoffice:rollback-before-actuals-a943bc2`; older code ignores the extra table.
+- Verified: healthy container, table created, existing budget rows intact, public routes 200, unauthenticated budget API 401, asset hash matches. Authenticated UI not exercised.
