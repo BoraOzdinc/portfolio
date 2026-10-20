@@ -79,6 +79,19 @@ Before subsequent releases, back up SQLite and tag the running image as a rollba
 - Real GitHub sign-in, desktop/mobile rendering, public unauthenticated API rejection, www redirect, SQLite backup/restore and unchanged MelsaShopp endpoints were verified. Resend accepted a message to its official delivery-simulation address; this does not prove delivery to a personal inbox.
 - Application code release: `d6fbfc9`. Local disaster-recovery copies still need separate off-site storage.
 
+## Personal budget
+
+`/backoffice?view=budget` (sidebar: “Kişisel bütçe”) is separate from project finance; nothing here touches project plans or payments. Everything is TRY, stored in kuruş.
+
+- **Gelir ve giderler:** salary, rent and other items, monthly/yearly/once, with optional end date. Card purchases are not entered; the card payment is the expense, so nothing is counted twice.
+- **Kredi kartları:** one statement per card per month. Minimum is fixed when the statement is saved: the card's own rate, otherwise BDDK's 20 % (limit ≤ 100.000 TL) / 40 % (above), per the 1 October 2026 rule. Payments are recorded amounts only.
+- **Hesaplar ve yatırımlar:** account balances are entered by hand. Each purchase is its own lot; lots with the same asset name are summed with a weighted average cost. USD/EUR prices come from TCMB's ForexBuying every 6 hours (overwriting a manual value); gold and anything else is priced by hand.
+- **Ledger:** 12 months, minimum vs full card payment. The projected balance starts from today's account total and adds only cash that has not moved yet: items later this month, future months, and unpaid statements (including overdue ones). Months without a statement show no card payment.
+
+Net worth = accounts + priced investments − unpaid statement balances. Unpriced assets are listed, not guessed.
+
+Migration `0001` only adds tables. Take the usual SQLite backup before deploying it.
+
 ## Verification
 
 - `pnpm typecheck`

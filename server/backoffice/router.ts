@@ -15,14 +15,9 @@ import {
 import { createPlan, changePlan, financeSummary, nextDue } from "./billing";
 import { monitorView } from "./monitoring";
 import { addDays, today } from "./dates";
+import { HttpError } from "./errors";
+import { budgetRouter } from "./budget";
 
-export class HttpError extends Error {
-  status: number;
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-  }
-}
 export type Identity = { name: string; allowed: boolean } | null;
 export type Identify = (req: Request) => Promise<Identity>;
 function found<T>(value: T | undefined): T {
@@ -180,6 +175,7 @@ export function backofficeRouter(
   router.get("/session", (_req, res) =>
     res.json({ data: res.locals.identity as Identity }),
   );
+  router.use("/budget", budgetRouter(db));
   router.get("/snapshot", (req, res) =>
     res.json({ data: snapshot(db, req.query) }),
   );

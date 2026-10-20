@@ -2,6 +2,7 @@ import {
   sqliteTable,
   text,
   integer,
+  real,
   uniqueIndex,
   index,
 } from "drizzle-orm/sqlite-core";
@@ -167,4 +168,57 @@ export const deliveries = sqliteTable("deliveries", {
   nextAttemptAt: text().notNull(),
   sentAt: text(),
   lastError: text(),
+});
+export const budgetItems = sqliteTable("budgetItems", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  direction: text().$type<"expense" | "income">().notNull(),
+  amount: integer().notNull(),
+  frequency: text().$type<Frequency>().notNull(),
+  startOn: text().notNull(),
+  endOn: text(),
+});
+export const cards = sqliteTable("cards", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  bank: text().notNull(),
+  creditLimit: integer().notNull(),
+  dueDay: integer().notNull(),
+  minRate: integer(),
+});
+export const cardStatements = sqliteTable(
+  "cardStatements",
+  {
+    id: text().primaryKey(),
+    cardId: text()
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    period: text().notNull(),
+    dueOn: text().notNull(),
+    balance: integer().notNull(),
+    minimum: integer().notNull(),
+    paidAmount: integer().notNull().default(0),
+    paidAt: text(),
+  },
+  (t) => [uniqueIndex("card_period").on(t.cardId, t.period)],
+);
+export const accounts = sqliteTable("accounts", {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  balance: integer().notNull(),
+  updatedAt: text().notNull(),
+});
+export const holdings = sqliteTable("holdings", {
+  id: text().primaryKey(),
+  asset: text().notNull(),
+  quantity: real().notNull(),
+  buyPrice: integer().notNull(),
+  boughtOn: text().notNull(),
+  note: text().notNull(),
+});
+export const prices = sqliteTable("prices", {
+  asset: text().primaryKey(),
+  price: integer().notNull(),
+  source: text().$type<"manual" | "tcmb">().notNull(),
+  updatedAt: text().notNull(),
 });

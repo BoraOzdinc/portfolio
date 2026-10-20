@@ -4,12 +4,14 @@ import { checks, monitors } from "./schema";
 import { generatePayments } from "./billing";
 import { prepareNotifications, deliverNotifications } from "./notifications";
 import { backup } from "./backup";
+import { refreshRates } from "./budget";
 
 export function startScheduler(
   store: Store,
   runMonitor: (id: string) => Promise<boolean>,
 ) {
-  let busy = false;
+  let busy = false,
+    ratesAt = 0;
   const tick = async () => {
     if (busy) return;
     busy = true;
@@ -41,6 +43,11 @@ export function startScheduler(
         )
         .run();
       await backup(store, process.env.BACKUP_PATH || "./backups");
+      // TCMB publishes once per business day; a failed fetch waits for the next window.
+      if (Date.now() - ratesAt > 6 * 3600_000) {
+        ratesAt = Date.now();
+        await refreshRates(store.db);
+      }
     } catch (error) {
       console.error(
         "Backoffice zamanlayıcı hatası:",

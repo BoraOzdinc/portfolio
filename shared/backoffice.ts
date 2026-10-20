@@ -71,3 +71,44 @@ export type PlanInput = z.infer<typeof planInput>;
 export type MonitorInput = z.infer<typeof monitorInput>;
 export type Frequency = PlanInput["frequency"];
 export type Currency = PlanInput["currency"];
+
+// Personal budget. Amounts are kuruş (TRY × 100); quantities may be fractional.
+const kurus = z.number().int().min(0).max(100_000_000_000);
+export const budgetItemInput = z
+  .object({
+    name,
+    direction: z.enum(["expense", "income"]),
+    amount: kurus.min(1),
+    frequency: z.enum(["once", "monthly", "yearly"]),
+    startOn: date,
+    endOn: date.nullable().default(null),
+  })
+  .refine(
+    (v) => !v.endOn || v.endOn >= v.startOn,
+    "Bitiş tarihi başlangıçtan önce olamaz.",
+  );
+export const cardInput = z.object({
+  name,
+  bank: text.default(""),
+  creditLimit: kurus,
+  dueDay: z.number().int().min(1).max(31),
+  minRate: z.number().int().min(1).max(100).nullable().default(null),
+});
+export const statementInput = z.object({
+  cardId: z.string().min(1),
+  dueOn: date,
+  balance: kurus,
+  minimum: kurus.nullable().default(null),
+});
+export const accountInput = z.object({
+  name,
+  balance: z.number().int().min(-100_000_000_000).max(100_000_000_000),
+});
+export const holdingInput = z.object({
+  asset: z.string().trim().min(1).max(40),
+  quantity: z.number().positive().max(1_000_000_000),
+  buyPrice: kurus,
+  boughtOn: date,
+  note: text.default(""),
+});
+export type BudgetItemInput = z.infer<typeof budgetItemInput>;

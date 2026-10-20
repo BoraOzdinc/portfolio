@@ -58,7 +58,7 @@ export function Modal({
     </dialog>
   );
 }
-function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="bo-field">
       <span>{label}</span>
@@ -66,7 +66,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
     </label>
   );
 }
-function Input({
+export function Input({
   label,
   name,
   value,

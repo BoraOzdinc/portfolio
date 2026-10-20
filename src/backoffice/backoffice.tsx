@@ -13,11 +13,13 @@ import {
   LogOut,
   Plus,
   RefreshCw,
+  Wallet,
 } from "lucide-react";
 import type { Snapshot } from "../../server/backoffice/router";
 import type { checks } from "../../server/backoffice/schema";
 import { ApiError, api, money, dateLabel, timeLabel } from "./api";
 import { EditorDialog, Modal, type Editor } from "./forms";
+import { Budget } from "./budget";
 import "./backoffice.css";
 
 const auth = createAuthClient();
@@ -63,6 +65,7 @@ function Empty({ text }: { text: string }) {
 export default function Backoffice() {
   const [params, setParams] = useSearchParams();
   const projectId = params.get("project") || undefined;
+  const budget = params.get("view") === "budget";
   const tab: Tab =
     tabs.find((t) => t.id === params.get("tab"))?.id || "overview";
   const [data, setData] = useState<Snapshot | null>(null),
@@ -248,10 +251,16 @@ export default function Backoffice() {
           ozdinc.dev<span>Backoffice</span>
         </Link>
         <button
-          className={`bo-nav ${!projectId ? "selected" : ""}`}
+          className={`bo-nav ${!projectId && !budget ? "selected" : ""}`}
           onClick={() => navigate(undefined, "overview")}
         >
           <LayoutDashboard size={18} /> Tüm projeler
+        </button>
+        <button
+          className={`bo-nav ${budget ? "selected" : ""}`}
+          onClick={() => setParams({ view: "budget" })}
+        >
+          <Wallet size={18} /> Kişisel bütçe
         </button>
         <div className="bo-sidebar-title">
           <span>Projeler</span>
@@ -282,7 +291,7 @@ export default function Backoffice() {
             .map((p) => (
               <button
                 key={p.id}
-                className={`bo-nav ${projectId === p.id ? "selected" : ""}`}
+                className={`bo-nav ${projectId === p.id && !budget ? "selected" : ""}`}
                 onClick={() => navigate(p.id, "overview")}
               >
                 <span className="bo-project-initial">{p.name.slice(0, 1)}</span>
@@ -316,6 +325,9 @@ export default function Backoffice() {
           </button>
         </div>
       </aside>
+      {budget ? (
+        <Budget />
+      ) : (
       <main className="bo-main">
         <header className="bo-page-header">
           <div>
@@ -1139,6 +1151,7 @@ export default function Backoffice() {
           kesintileri izlenmez.
         </footer>
       </main>
+      )}
       {editor && (
         <EditorDialog
           editor={editor}
