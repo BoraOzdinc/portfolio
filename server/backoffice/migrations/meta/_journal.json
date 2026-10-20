@@ -29,6 +29,13 @@
       "when": 1792501486744,
       "tag": "0003_late_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792502187856,
+      "tag": "0004_quick_bug",
+      "breakpoints": true
     }
   ]
 }

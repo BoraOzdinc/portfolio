@@ -123,10 +123,23 @@ export const transactionInput = z.object({
 const clock = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Saat SS:DD biçiminde olmalı.");
-export const workSessionInput = z.object({
-  date,
-  kind: z.enum(["office", "remote"]),
-  start: clock,
-  end: clock,
-  note: text.default(""),
-});
+export const period = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Dönem YYYY-AA biçiminde olmalı.");
+export const workSessionInput = z
+  .object({
+    date,
+    kind: z.enum(["office", "remote"]),
+    start: clock.nullable().default(null),
+    end: clock.nullable().default(null),
+    duration: z.number().int().min(1).max(1440).nullable().default(null),
+    note: text.default(""),
+    paidPeriod: period.nullable().default(null),
+  })
+  .refine(
+    (v) =>
+      v.duration === null
+        ? v.start !== null && v.end !== null
+        : v.start === null && v.end === null,
+    "Saat aralığı veya süre girin.",
+  );

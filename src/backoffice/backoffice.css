@@ -734,6 +734,47 @@
 .bo-form-grid.bo-work-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+.bo-work-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.bo-unpaid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  max-width: 760px;
+}
+.bo-unpaid span {
+  color: var(--bo-muted);
+}
+.bo-unpaid strong {
+  display: block;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+.bo-unpaid p {
+  color: var(--bo-muted);
+}
+.bo-unpaid small {
+  max-width: 340px;
+}
+.bo-bulk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.bo-bulk span {
+  margin-right: auto;
+}
+.bo td.bo-check-cell {
+  min-width: 0;
+  width: 36px;
+}
 .bo-work-note {
   min-width: 220px;
   white-space: pre-wrap;

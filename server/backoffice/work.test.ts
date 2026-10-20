@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { openDatabase } from "./database";
 import { createApp } from "../app";
-import { sessionMinutes } from "./work";
+import { overtimeAmount, overtimeHourly, sessionMinutes } from "./work";
 
 test("Session length: remote work wraps midnight, early office exit counts as zero", () => {
   assert.equal(sessionMinutes("remote", "20:00", "22:00"), 120);
@@ -13,7 +13,12 @@ test("Session length: remote work wraps midnight, early office exit counts as ze
   assert.equal(sessionMinutes("office", "18:00", "17:30"), 0);
 });
 
-test("Work log API totals a month and exports Excel-ready CSV", async () => {
+test("Overtime pay matches the August 2026 payslip (65.000 net, 26,5 h = 11.483,33)", () => {
+  assert.equal(overtimeHourly(6_500_000), 43_333);
+  assert.equal(overtimeAmount(6_500_000, 26.5 * 60), 1_148_333);
+});
+
+test("Work log API: ranges or durations, payment status, unpaid total and employer-format CSV", async () => {
   const store = openDatabase(":memory:");
   try {
     const app = createApp(
@@ -22,77 +27,122 @@ test("Work log API totals a month and exports Excel-ready CSV", async () => {
       async () => true,
       async () => ({ name: "Admin", allowed: true }),
     );
-    const post = (body: object) =>
-      request(app)
-        .post("/api/backoffice/work")
+    const send = (
+      method: "post" | "put" | "patch",
+      path: string,
+      body: object,
+    ) => {
+      const agent = request(app);
+      return agent[method](`/api/backoffice/work${path}`)
         .set("Origin", "http://localhost:5173")
         .send(body);
-    await post({
-      date: "2026-10-20",
-      kind: "office",
-      start: "18:00",
-      end: "18:00",
-    }).expect(201);
-    await post({
+    };
+    const office = (
+      await send("post", "", {
+        date: "2026-10-20",
+        kind: "office",
+        start: "18:00",
+        end: "20:00",
+      }).expect(201)
+    ).body.data;
+    await send("post", "", {
       date: "2026-10-20",
       kind: "remote",
-      start: "20:00",
+      start: "21:00",
       end: "22:00",
       note: "Canlı ortam; hata",
     }).expect(201);
-    await post({
-      date: "2026-10-21",
+    const travel = (
+      await send("post", "", {
+        date: "2026-10-02",
+        kind: "remote",
+        duration: 360,
+        note: "İlknak (İzmir) Dönüş Yolculuğu",
+      }).expect(201)
+    ).body.data;
+    await send("post", "", {
+      date: "2026-10-03",
       kind: "remote",
-      start: "23:30",
-      end: "01:00",
+      duration: 240,
       note: '=HYPERLINK("x")',
     }).expect(201);
-    await post({
-      date: "2026-11-01",
+    await send("post", "", {
+      date: "2026-10-04",
       kind: "remote",
       start: "10:00",
       end: "11:00",
-    }).expect(201);
-    await post({
+      duration: 60,
+    }).expect(400);
+    await send("post", "", { date: "2026-10-04", kind: "remote" }).expect(400);
+    await send("post", "", {
       date: "2026-10-22",
       kind: "remote",
       start: "25:00",
       end: "26:00",
     }).expect(400);
 
-    const data = (
+    let data = (
       await request(app).get("/api/backoffice/work?month=2026-10").expect(200)
     ).body.data;
-    assert.equal(data.sessions.length, 3);
+    assert.equal(data.salary, null);
+    assert.equal(data.unpaid.amount, null, "no salary, no money estimate");
+    assert.deepEqual(
+      data.sessions.map((w: { minutes: number }) => w.minutes),
+      [360, 240, 120, 60],
+    );
+
+    await send("put", "/salary", { netSalary: 6_500_000 }).expect(200);
+    await send("post", "/pay", {
+      ids: [travel.id, office.id],
+      paidPeriod: "2026-10",
+    }).expect(200);
+    await send("post", "/pay", {
+      ids: ["missing"],
+      paidPeriod: "2026-10",
+    }).expect(404);
+    data = (
+      await request(app).get("/api/backoffice/work?month=2026-10").expect(200)
+    ).body.data;
+    assert.equal(data.hourly, 43_333);
     assert.deepEqual(data.totals, {
-      office: 0,
-      remote: 210,
-      all: 210,
-      days: 2,
+      office: 120,
+      remote: 660,
+      all: 780,
+      amount: overtimeAmount(6_500_000, 780),
+      days: 3,
     });
+    assert.deepEqual(data.unpaid, {
+      minutes: 300,
+      amount: overtimeAmount(6_500_000, 300),
+    });
+
+    // Switching an entry from a clock range to a declared duration.
+    await send("patch", `/${office.id}`, {
+      start: null,
+      end: null,
+      duration: 90,
+    }).expect(200);
+    await send("post", "/pay", { ids: [office.id], paidPeriod: null }).expect(
+      200,
+    );
 
     const csv = await request(app)
       .get("/api/backoffice/work/export?month=2026-10")
       .expect(200);
-    assert.match(String(csv.headers["content-type"]), /text\/csv/);
     assert.match(
       String(csv.headers["content-disposition"]),
       /mesai-2026-10\.csv/,
     );
     const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n");
-    assert.equal(
-      lines[0],
-      "Tarih;Tür;Başlangıç;Bitiş;Süre (saat);Süre (s:dk);Açıklama",
-    );
-    assert.equal(
-      lines[2],
-      '20.10.2026;Ofis dışı çalışma;20:00;22:00;2,00;2:00;"Canlı ortam; hata"',
-    );
-    assert.equal(
-      lines[3],
-      `21.10.2026;Ofis dışı çalışma;23:30;01:00;1,50;1:30;"'=HYPERLINK(""x"")"`,
-    );
-    assert.equal(lines[4], "Toplam;;;;3,50;3:30;");
+    assert.deepEqual(lines, [
+      "Ekim Ayı Ekstra Süreler",
+      "Tarih;Gün;Fazla Mesai Süresi;Birim;Nedeni;Saat Aralığı",
+      "02.10.2026;Cuma;06:00;SAAT;İlknak (İzmir) Dönüş Yolculuğu;",
+      `03.10.2026;Cumartesi;04:00;SAAT;"'=HYPERLINK(""x"")";`,
+      "20.10.2026;Salı;01:30;SAAT;Ofiste fazla mesai;",
+      '20.10.2026;Salı;01:00;SAAT;"Canlı ortam; hata";21:00–22:00',
+      "Toplam;;12:30;SAAT;;",
+    ]);
 
     await request(
       createApp(

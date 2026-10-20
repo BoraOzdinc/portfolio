@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
-import { eq, like } from "drizzle-orm";
+import { eq, inArray, isNull, like } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "./database";
 import * as s from "./schema";
-import { workSessionInput } from "../../shared/backoffice";
+import { period, workSessionInput } from "../../shared/backoffice";
 import { today } from "./dates";
 import { HttpError } from "./errors";
 
@@ -22,77 +22,104 @@ export function sessionMinutes(
   if (kind === "office") return Math.max(diff, 0);
   return diff < 0 ? diff + 1440 : diff;
 }
+const minutesOf = (w: Session) =>
+  w.duration ?? sessionMinutes(w.kind, w.start!, w.end!);
 
-const month = z
-  .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
-  .optional();
+// Turkish labour practice used on the payslip: monthly net ÷ 225 hours, ×1.5.
+export const overtimeHourly = (netSalary: number) =>
+  Math.round((netSalary / 225) * 1.5);
+export const overtimeAmount = (netSalary: number, minutes: number) =>
+  Math.round((netSalary * 1.5 * minutes) / (225 * 60));
+
+function netSalary(db: DB) {
+  const row = db
+    .select()
+    .from(s.settings)
+    .where(eq(s.settings.key, "netSalary"))
+    .get();
+  return row ? Number(row.value) : null;
+}
 
 export function workSnapshot(db: DB, query: Record<string, unknown> = {}) {
   const day = today();
-  const selected = month.parse(query.month || undefined) ?? day.slice(0, 7);
+  const selected =
+    period.optional().parse(query.month || undefined) ?? day.slice(0, 7);
+  const salary = netSalary(db);
+  const amount = (minutes: number) =>
+    salary === null ? null : overtimeAmount(salary, minutes);
   const sessions = db
     .select()
     .from(s.workSessions)
     .where(like(s.workSessions.date, `${selected}-%`))
     .orderBy(s.workSessions.date, s.workSessions.start)
     .all()
-    .map((w) => ({ ...w, minutes: sessionMinutes(w.kind, w.start, w.end) }));
+    .map((w) => ({ ...w, minutes: minutesOf(w) }));
   const total = (kind?: Session["kind"]) =>
     sessions
       .filter((w) => !kind || w.kind === kind)
       .reduce((a, w) => a + w.minutes, 0);
+  // Unpaid hours across every month: what the next payslips should cover.
+  const unpaid = db
+    .select()
+    .from(s.workSessions)
+    .where(isNull(s.workSessions.paidPeriod))
+    .all()
+    .reduce((a, w) => a + minutesOf(w), 0);
   return {
     today: day,
     month: selected,
     sessions,
+    salary,
+    hourly: salary === null ? null : overtimeHourly(salary),
     totals: {
       office: total("office"),
       remote: total("remote"),
       all: total(),
+      amount: amount(total()),
       days: new Set(sessions.filter((w) => w.minutes > 0).map((w) => w.date))
         .size,
     },
+    unpaid: { minutes: unpaid, amount: amount(unpaid) },
   };
 }
 export type WorkSnapshot = ReturnType<typeof workSnapshot>;
 
-const kinds = { office: "Ofiste fazla mesai", remote: "Ofis dışı çalışma" };
-const hours = (m: number) => (m / 60).toFixed(2).replace(".", ",");
+const monthName = (month: string) =>
+  new Intl.DateTimeFormat("tr-TR", { month: "long", timeZone: "UTC" }).format(
+    new Date(`${month}-01T12:00:00Z`),
+  );
+const weekday = (date: string) =>
+  new Intl.DateTimeFormat("tr-TR", { weekday: "long", timeZone: "UTC" }).format(
+    new Date(`${date}T12:00:00Z`),
+  );
 const clock = (m: number) =>
-  `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`;
+  `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 function cell(value: string) {
   // Neutralise spreadsheet formulas, then quote for ; " and line breaks.
   const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
   return /[;"\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
-/** Semicolon CSV with BOM: opens in Turkish-locale Excel as columns. */
+/**
+ * Mirrors the declaration sheet handed to the employer (Tarih, Gün, Süre,
+ * Birim, Nedeni). Semicolon CSV with BOM so Turkish-locale Excel opens columns.
+ */
 export function workCsv(data: WorkSnapshot) {
   const rows = [
-    [
-      "Tarih",
-      "Tür",
-      "Başlangıç",
-      "Bitiş",
-      "Süre (saat)",
-      "Süre (s:dk)",
-      "Açıklama",
-    ],
+    [`${monthName(data.month)} Ayı Ekstra Süreler`],
+    ["Tarih", "Gün", "Fazla Mesai Süresi", "Birim", "Nedeni", "Saat Aralığı"],
     ...data.sessions.map((w) => [
       w.date.split("-").reverse().join("."),
-      kinds[w.kind],
-      w.start,
-      w.end,
-      hours(w.minutes),
+      weekday(w.date),
       clock(w.minutes),
-      w.note,
+      "SAAT",
+      w.note ||
+        (w.kind === "office" ? "Ofiste fazla mesai" : "Ofis dışı çalışma"),
+      w.start && w.end ? `${w.start}–${w.end}` : "",
     ]),
-    ["Toplam", "", "", "", hours(data.totals.all), clock(data.totals.all), ""],
+    ["Toplam", "", clock(data.totals.all), "SAAT", "", ""],
   ];
-  return (
-    "\uFEFF" + rows.map((r) => r.map(cell).join(";")).join("\r\n") + "\r\n"
-  );
+  return "\uFEFF" + rows.map((r) => r.map(cell).join(";")).join("\r\n") + "\r\n";
 }
 
 export function workRouter(db: DB) {
@@ -123,6 +150,33 @@ export function workRouter(db: DB) {
       .returning()
       .get();
     res.status(201).json({ data: row });
+  });
+  router.post("/pay", (req, res) => {
+    const input = z
+      .object({
+        ids: z.array(z.string().min(1)).min(1).max(500),
+        paidPeriod: period.nullable(),
+      })
+      .parse(req.body);
+    const changed = db
+      .update(s.workSessions)
+      .set({ paidPeriod: input.paidPeriod })
+      .where(inArray(s.workSessions.id, input.ids))
+      .run().changes;
+    if (changed !== new Set(input.ids).size)
+      throw new HttpError(404, "Bazı kayıtlar bulunamadı.");
+    res.json({ data: { changed } });
+  });
+  router.put("/salary", (req, res) => {
+    const { netSalary } = z
+      .object({ netSalary: z.number().int().min(1).max(100_000_000_000) })
+      .parse(req.body);
+    const row = { key: "netSalary", value: String(netSalary) };
+    db.insert(s.settings)
+      .values(row)
+      .onConflictDoUpdate({ target: s.settings.key, set: row })
+      .run();
+    res.json({ data: { netSalary } });
   });
   router.patch("/:id", (req, res) => {
     const existing = one(req.params.id);

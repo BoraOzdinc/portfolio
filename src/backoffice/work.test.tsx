@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -84,11 +85,51 @@ it("logs office exit and remote work, totals the month and links the export", as
         kind: "remote",
         start: "20:00",
         end: "22:00",
+        duration: null,
         note: "Acil hata düzeltmesi",
       }),
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Ofisten çıkış" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sadece süre" }));
+    await userEvent.type(screen.getByLabelText("Süre (saat)"), "1.5");
+    await userEvent.type(
+      screen.getByLabelText("Açıklama / neden"),
+      "İzmir yolculuğu",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    await waitFor(() =>
+      expect(mocks.api).toHaveBeenCalledWith("/work", "POST", {
+        date: day,
+        kind: "remote",
+        start: null,
+        end: null,
+        duration: 90,
+        note: "İzmir yolculuğu",
+      }),
+    );
+
+    await userEvent.click(screen.getByLabelText(/kaydını seç$/));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ödendi işaretle" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText("Bordro dönemi"), {
+      target: { value: "2026-09" },
+    });
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Kaydet" }),
+    );
+    await waitFor(() =>
+      expect(mocks.api).toHaveBeenCalledWith("/work/pay", "POST", {
+        ids: ["w1"],
+        paidPeriod: "2026-09",
+      }),
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Saat aralığı" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Ofisten çıkış" }),
+    );
     expect(screen.getByLabelText("Planlanan çıkış")).toHaveProperty(
       "value",
       "18:00",

@@ -242,10 +242,18 @@ export const workSessions = sqliteTable(
     id: text().primaryKey(),
     date: text().notNull(),
     // office: planned exit → actual exit; remote: work start → end.
+    // Either a clock range or a declared duration (minutes), never both.
     kind: text().$type<"office" | "remote">().notNull(),
-    start: text().notNull(),
-    end: text().notNull(),
+    start: text(),
+    end: text(),
+    duration: integer(),
     note: text().notNull(),
+    // Payslip month that paid these hours; null = declared, not yet paid.
+    paidPeriod: text(),
   },
   (t) => [index("work_date").on(t.date)],
 );
+export const settings = sqliteTable("settings", {
+  key: text().primaryKey(),
+  value: text().notNull(),
+});
