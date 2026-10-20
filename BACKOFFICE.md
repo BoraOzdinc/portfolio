@@ -94,6 +94,14 @@ Net worth = accounts + priced investments − unpaid statement balances. Unprice
 
 Migration `0001` only adds tables. Take the usual SQLite backup before deploying it.
 
+## Work log
+
+`/backoffice?view=work` (sidebar: “Mesai”). Office exit is signed on paper at the office; this log is for days that differ from the default 18:00 exit and, mainly, for work done outside the office, which has no signature. A day without entries means a normal 18:00 exit.
+
+- **Ofisten çıkış:** planned exit (default 18:00) → actual exit; the difference is overtime, an early exit counts as 0.
+- **Ofis dışı çalışma:** start → end with a reason; sessions past midnight wrap (23:30–01:00 = 1,5 h). Any number of entries per day, editable later.
+- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM`, semicolon CSV with BOM so Turkish-locale Excel opens it as columns: date, type, start, end, hours (decimal comma) and h:mm, reason, plus a total row. Cells starting with `= + - @` are prefixed with `'` to block formula injection.
+
 ## Verification
 
 - `pnpm typecheck`
@@ -136,3 +144,9 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 - Commit `a943bc2`. Migration `0002` adds the `transactions` table only. Image `portfolio-backoffice:actuals-a943bc2` (also `latest`) layers over `budget-06c8474`; release files `/opt/portfolio-releases/actuals-a943bc2`.
 - Pre-migration backup: `/var/backups/portfolio/pre-actuals-a943bc2.sqlite`. Rollback image: `portfolio-backoffice:rollback-before-actuals-a943bc2`; older code ignores the extra table.
 - Verified: healthy container, table created, existing budget rows intact, public routes 200, unauthenticated budget API 401, asset hash matches. Authenticated UI not exercised.
+
+### Work log release: 2026-10-20
+
+- Commit `8f86a4a`. Migration `0003` adds `workSessions` only. Image `portfolio-backoffice:work-8f86a4a` (also `latest`) layers over `actuals-a943bc2`; release files `/opt/portfolio-releases/work-8f86a4a`.
+- Pre-migration backup `/var/backups/portfolio/pre-work-8f86a4a.sqlite`; rollback image `portfolio-backoffice:rollback-before-work-8f86a4a` (older code ignores the table).
+- Verified: healthy container, table created, existing rows intact, public routes 200, unauthenticated work API and export 401, asset hash matches. Authenticated UI and a real Excel open were not exercised.
