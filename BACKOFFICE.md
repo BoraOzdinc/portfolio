@@ -96,11 +96,12 @@ Migration `0001` only adds tables. Take the usual SQLite backup before deploying
 
 ## Work log
 
-`/backoffice?view=work` (sidebar: “Mesai”). Office exit is signed on paper at the office; this log is for days that differ from the default 18:00 exit and, mainly, for work done outside the office, which has no signature. A day without entries means a normal 18:00 exit.
+`/backoffice?view=work` (sidebar: “Mesai”). Office exit is signed on paper at the office; this log is for days that differ from the default 18:00 exit and, mainly, for work outside the office, which has no signature. A day without entries means a normal 18:00 exit.
 
-- **Ofisten çıkış:** planned exit (default 18:00) → actual exit; the difference is overtime, an early exit counts as 0.
-- **Ofis dışı çalışma:** start → end with a reason; sessions past midnight wrap (23:30–01:00 = 1,5 h). Any number of entries per day, editable later.
-- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM`, semicolon CSV with BOM so Turkish-locale Excel opens it as columns: date, type, start, end, hours (decimal comma) and h:mm, reason, plus a total row. Cells starting with `= + - @` are prefixed with `'` to block formula injection.
+- **Entry:** a clock range (office: planned exit → actual exit, early exit counts 0; remote: start → end, wraps midnight) or a declared duration only (travel, unclear hours). Any number per day, editable later.
+- **Payment status:** each entry is “Bekliyor” until marked paid against a payslip month (bulk select → “Ödendi işaretle”). Unpaid hours across all months are shown with expected net pay = net salary ÷ 225 × 1,5 per hour, matching the August 2026 payslip (65.000 → 433,33 TL/h). BES (~3 % of gross) is not subtracted. Net salary lives in `settings.netSalary` (kuruş).
+- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` follows the employer declaration sheet: title row, Tarih, Gün, Fazla Mesai Süresi (hh:mm), Birim, Nedeni, plus Saat Aralığı, and a total row. Semicolon CSV with BOM for Turkish-locale Excel; cells starting with `= + - @` get a `'` prefix.
+- Migration `0004` rebuilds `workSessions` to make times nullable. drizzle-kit generated an INSERT selecting the new columns from the old table; it was corrected by hand to select `NULL` and checked against a populated database.
 
 ## Verification
 
@@ -150,3 +151,8 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 - Commit `8f86a4a`. Migration `0003` adds `workSessions` only. Image `portfolio-backoffice:work-8f86a4a` (also `latest`) layers over `actuals-a943bc2`; release files `/opt/portfolio-releases/work-8f86a4a`.
 - Pre-migration backup `/var/backups/portfolio/pre-work-8f86a4a.sqlite`; rollback image `portfolio-backoffice:rollback-before-work-8f86a4a` (older code ignores the table).
 - Verified: healthy container, table created, existing rows intact, public routes 200, unauthenticated work API and export 401, asset hash matches. Authenticated UI and a real Excel open were not exercised.
+
+### Work log revision: 2026-10-20
+
+- Commit `0cc3d7d`. Image `portfolio-backoffice:work2-0cc3d7d` (also `latest`) over `work-8f86a4a`; release files `/opt/portfolio-releases/work2-0cc3d7d`. Pre-migration backup `/var/backups/portfolio/pre-work2-0cc3d7d.sqlite`; rollback image `portfolio-backoffice:rollback-before-work2-0cc3d7d`. Rolling back needs the backup restored, because the old code requires non-null times.
+- Imported the 15 declared entries (52,5 h, Aug–Oct) from the owner's declaration sheet as unpaid durations, and set net salary 65.000 TL. The August export rendered on production matches the original sheet.
