@@ -134,3 +134,60 @@ it("shows the ledger, switches card scenarios and saves amounts as kuruş", asyn
     store.sqlite.close();
   }
 });
+
+it("records an item's actual amount from the month detail", async () => {
+  const store = openDatabase(":memory:");
+  const month = today().slice(0, 7);
+  store.db
+    .insert(s.budgetItems)
+    .values({
+      id: "rent",
+      name: "Kira",
+      direction: "expense",
+      amount: 2_750_000,
+      frequency: "monthly",
+      startOn: `${month}-01`,
+    })
+    .run();
+  try {
+    mocks.api.mockImplementation(async (path: string, method?: string) => {
+      if (path.startsWith("/snapshot")) return snapshot(store.db);
+      if (path.startsWith("/budget") && !method)
+        return budgetSnapshot(store.db);
+      return { id: "new" };
+    });
+    render(
+      <MemoryRouter initialEntries={["/backoffice?view=budget"]}>
+        <Backoffice />
+      </MemoryRouter>,
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Gerçekleşti" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByLabelText("Açıklama")).toHaveProperty(
+      "value",
+      "Kira",
+    );
+    const amount = within(dialog).getByLabelText("Gerçek tutar (TL)");
+    await userEvent.clear(amount);
+    await userEvent.type(amount, "28000");
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Kaydet" }),
+    );
+    await waitFor(() =>
+      expect(mocks.api).toHaveBeenCalledWith(
+        "/budget/transactions",
+        "POST",
+        expect.objectContaining({
+          itemId: "rent",
+          direction: "expense",
+          amount: 2_800_000,
+          date: `${month}-01`,
+        }),
+      ),
+    );
+  } finally {
+    store.sqlite.close();
+  }
+});

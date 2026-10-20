@@ -71,6 +71,7 @@ test("Projection starts from today's balances and only adds cash that has not mo
   const [oct, nov] = monthTable(
     items,
     [october],
+    [],
     100_000 * TL,
     "2026-10",
     "2026-10-20",
@@ -85,6 +86,7 @@ test("Projection starts from today's balances and only adds cash that has not mo
   const paid = monthTable(
     items,
     [{ ...october, paidAmount: 2_000 * TL }],
+    [],
     100_000 * TL,
     "2026-10",
     "2026-10-20",
@@ -101,6 +103,7 @@ test("Projection starts from today's balances and only adds cash that has not mo
   const overdue = monthTable(
     items,
     [statement("2026-09", 5_000 * TL, 1_000 * TL)],
+    [],
     100_000 * TL,
     "2026-10",
     "2026-10-20",
@@ -114,6 +117,7 @@ test("Projection starts from today's balances and only adds cash that has not mo
 
   const [sep, octFromSep] = monthTable(
     items,
+    [],
     [],
     100_000 * TL,
     "2026-09",
@@ -131,6 +135,7 @@ test("Projection starts from today's balances and only adds cash that has not mo
   const dec = monthTable(
     items,
     [],
+    [],
     100_000 * TL,
     "2026-12",
     "2026-10-20",
@@ -141,6 +146,85 @@ test("Projection starts from today's balances and only adds cash that has not mo
     140_000 * TL,
     "starting later still carries the months between",
   );
+});
+
+test("Recorded actuals replace their plan, extras add up and nothing is counted twice", () => {
+  const items = [
+    item({
+      id: "salary",
+      name: "Maaş",
+      direction: "income",
+      amount: 65_000 * TL,
+      startOn: "2026-01-10",
+    }),
+    item({
+      id: "rent",
+      name: "Kira",
+      amount: 27_500 * TL,
+      startOn: "2026-01-25",
+    }),
+  ];
+  const tx = (
+    id: string,
+    date: string,
+    amount: number,
+    itemId: string | null,
+    direction: "income" | "expense" = "income",
+  ) => ({
+    id,
+    itemId,
+    name: id,
+    direction,
+    amount,
+    date,
+    note: "",
+  });
+  const entries = [
+    tx("salary-oct", "2026-10-10", 68_000 * TL, "salary"),
+    tx("overtime", "2026-10-15", 2_000 * TL, null),
+    tx("dinner", "2026-10-18", 1_500 * TL, null, "expense"),
+    tx("rent-early", "2026-10-22", 27_500 * TL, "rent", "expense"),
+  ];
+  const [oct, nov] = monthTable(
+    items,
+    [],
+    entries,
+    100_000 * TL,
+    "2026-10",
+    "2026-10-20",
+    2,
+  );
+  const salary = oct.lines.find((l) => l.id === "salary")!;
+  assert.equal(salary.planned, 65_000 * TL);
+  assert.equal(salary.actual, 68_000 * TL);
+  assert.equal(oct.income, 70_000 * TL);
+  assert.equal(oct.expense, 29_000 * TL);
+  assert.equal(oct.vsPlan, 3_000 * TL + 2_000 * TL - 1_500 * TL);
+  assert.equal(oct.recorded, 4);
+  // Only the future-dated rent entry is still ahead; past entries are in the balance.
+  assert.equal(oct.projectedMin, 72_500 * TL);
+  assert.equal(
+    nov.lines.find((l) => l.id === "salary")!.actual,
+    null,
+    "next month is plan again",
+  );
+  assert.equal(nov.projectedMin, (72_500 + 65_000 - 27_500) * TL);
+
+  const unrecorded = monthTable(
+    items,
+    [],
+    [],
+    100_000 * TL,
+    "2026-10",
+    "2026-10-20",
+    1,
+  )[0];
+  assert.equal(
+    unrecorded.projectedMin,
+    72_500 * TL,
+    "salary day passed, rent still planned",
+  );
+  assert.equal(unrecorded.vsPlan, 0);
 });
 
 test("Budget API: cards, statements, payments, accounts, holdings and prices", async () => {
@@ -247,6 +331,47 @@ test("Budget API: cards, statements, payments, accounts, holdings and prices", a
     assert.equal(gold.gain, 6_500 * TL);
     assert.equal(data.totals.cardDebt, 13_000 * TL);
     assert.equal(data.totals.netWorth, (40_000 + 24_000 - 13_000) * TL);
+
+    const rent = (
+      await send("post", "/items", {
+        name: "Kira",
+        direction: "expense",
+        amount: 27_500 * TL,
+        frequency: "monthly",
+        startOn: "2026-01-25",
+      }).expect(201)
+    ).body.data;
+    const paidRent = (
+      await send("post", "/transactions", {
+        itemId: rent.id,
+        name: "Kira",
+        direction: "income",
+        amount: 28_000 * TL,
+        date: "2026-10-25",
+      }).expect(201)
+    ).body.data;
+    assert.equal(
+      paidRent.direction,
+      "expense",
+      "linked entries follow their item",
+    );
+    await send("post", "/transactions", {
+      itemId: "missing",
+      name: "X",
+      direction: "income",
+      amount: 1,
+      date: "2026-10-01",
+    }).expect(404);
+    await send("patch", `/transactions/${paidRent.id}`, {
+      amount: 27_000 * TL,
+    }).expect(200);
+    await send("delete", `/items/${rent.id}`).expect(200);
+    assert.equal(
+      budgetSnapshot(store.db).transactions[0].itemId,
+      null,
+      "deleting an item keeps its history as unplanned entries",
+    );
+    await send("delete", `/transactions/${paidRent.id}`).expect(200);
 
     await send("delete", `/cards/${card.id}`).expect(200);
     assert.equal(

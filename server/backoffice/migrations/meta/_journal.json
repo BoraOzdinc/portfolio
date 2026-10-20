@@ -15,6 +15,13 @@
       "when": 1792487720469,
       "tag": "0001_big_darwin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792497789774,
+      "tag": "0002_bitter_plazm",
+      "breakpoints": true
     }
   ]
 }

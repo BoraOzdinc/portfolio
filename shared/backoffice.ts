@@ -112,3 +112,11 @@ export const holdingInput = z.object({
   note: text.default(""),
 });
 export type BudgetItemInput = z.infer<typeof budgetItemInput>;
+export const transactionInput = z.object({
+  itemId: z.string().min(1).nullable().default(null),
+  name,
+  direction: z.enum(["expense", "income"]),
+  amount: kurus.min(1),
+  date,
+  note: text.default(""),
+});

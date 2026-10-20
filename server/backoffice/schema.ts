@@ -222,3 +222,17 @@ export const prices = sqliteTable("prices", {
   source: text().$type<"manual" | "tcmb">().notNull(),
   updatedAt: text().notNull(),
 });
+export const transactions = sqliteTable(
+  "transactions",
+  {
+    id: text().primaryKey(),
+    // Linked to a planned item: replaces that item's plan for the month.
+    itemId: text().references(() => budgetItems.id, { onDelete: "set null" }),
+    name: text().notNull(),
+    direction: text().$type<"expense" | "income">().notNull(),
+    amount: integer().notNull(),
+    date: text().notNull(),
+    note: text().notNull(),
+  },
+  (t) => [index("transaction_date").on(t.date)],
+);

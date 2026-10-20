@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { DB } from "./database";
 import * as s from "./schema";
@@ -10,6 +10,7 @@ import {
   cardInput,
   holdingInput,
   statementInput,
+  transactionInput,
   type BudgetItemInput,
 } from "../../shared/backoffice";
 import { today } from "./dates";
@@ -17,6 +18,7 @@ import { HttpError } from "./errors";
 
 type Item = BudgetItemInput & { id: string };
 type Statement = typeof s.cardStatements.$inferSelect;
+type Transaction = typeof s.transactions.$inferSelect;
 
 // BDDK 1 Ekim 2026: limit ≤ 100.000 TL → %20, üzeri → %40. A card's own
 // minRate overrides this, so a future rule change needs no deploy.
@@ -55,6 +57,7 @@ function itemDay(item: Item, month: string) {
 export function monthTable(
   items: Item[],
   statements: (Statement & { cardName: string })[],
+  transactions: Transaction[],
   opening: number,
   from: string,
   day = today(),
@@ -64,7 +67,8 @@ export function monthTable(
     todayNum = Number(day.slice(8));
   // Projection starts from today's account balances, so only cash movements
   // that have not happened yet are added: later days this month, future months,
-  // and unpaid card balances. Past months show actuals but no projection.
+  // future-dated entries and unpaid card balances. Recorded actuals replace
+  // their item's plan and, being in the past, are never added again.
   const overdue = (key: "minimum" | "balance") =>
     statements
       .filter((st) => st.period < current)
@@ -79,17 +83,46 @@ export function monthTable(
     runFull += r.pendingFull;
   }
   function row(month: string) {
-    const lines = items
-      .filter((i) => occursIn(i, month))
-      .map((i) => ({
-        id: i.id,
-        name: i.name,
-        direction: i.direction,
-        amount: i.amount,
-        pending:
+    const entries = transactions.filter((t) => t.date.slice(0, 7) === month);
+    const later = (list: Transaction[]) =>
+      list.filter((t) => t.date > day).reduce((a, t) => a + t.amount, 0);
+    const itemLines = items
+      .filter(
+        (i) => occursIn(i, month) || entries.some((t) => t.itemId === i.id),
+      )
+      .map((i) => {
+        const linked = entries.filter((t) => t.itemId === i.id);
+        const planned = occursIn(i, month) ? i.amount : 0;
+        const actual = linked.length
+          ? linked.reduce((a, t) => a + t.amount, 0)
+          : null;
+        const due =
           month > current ||
-          (month === current && itemDay(i, month) > todayNum),
+          (month === current && itemDay(i, month) > todayNum);
+        return {
+          id: i.id,
+          name: i.name,
+          direction: i.direction,
+          planned,
+          actual,
+          amount: actual ?? planned,
+          date: `${month}-${String(itemDay(i, month)).padStart(2, "0")}`,
+          pending: actual === null ? (due ? planned : 0) : later(linked),
+        };
+      });
+    const extraLines = entries
+      .filter((t) => !t.itemId)
+      .map((t) => ({
+        id: t.id,
+        name: t.name,
+        direction: t.direction,
+        planned: 0,
+        actual: t.amount,
+        amount: t.amount,
+        date: t.date,
+        pending: later([t]),
       }));
+    const lines = [...itemLines, ...extraLines];
     const cardLines = statements
       .filter((st) => st.period === month)
       .map((st) => ({
@@ -103,35 +136,39 @@ export function monthTable(
         leftMin: Math.max(st.minimum - st.paidAmount, 0),
         leftFull: Math.max(st.balance - st.paidAmount, 0),
       }));
-    const sum = (dir: "income" | "expense", pendingOnly = false) =>
-      lines
-        .filter((l) => l.direction === dir && (!pendingOnly || l.pending))
-        .reduce((a, l) => a + l.amount, 0);
+    const sum = (
+      dir: "income" | "expense",
+      key: "amount" | "planned" | "pending",
+    ) =>
+      lines.filter((l) => l.direction === dir).reduce((a, l) => a + l[key], 0);
+    const income = sum("income", "amount"),
+      expense = sum("expense", "amount");
     const paid = cardLines.reduce((a, c) => a + c.paid, 0);
-    const cardMin = paid + cardLines.reduce((a, c) => a + c.leftMin, 0);
-    const cardFull = paid + cardLines.reduce((a, c) => a + c.leftFull, 0);
-    const base =
-      month >= current ? sum("income", true) - sum("expense", true) : 0;
+    const leftMin = cardLines.reduce((a, c) => a + c.leftMin, 0);
+    const leftFull = cardLines.reduce((a, c) => a + c.leftFull, 0);
     const open = month >= current;
+    const base = sum("income", "pending") - sum("expense", "pending");
     return {
       month,
       lines,
       cards: cardLines,
-      income: sum("income"),
-      expense: sum("expense"),
-      cardMin,
-      cardFull,
-      netMin: sum("income") - sum("expense") - cardMin,
-      netFull: sum("income") - sum("expense") - cardFull,
+      income,
+      expense,
+      // Actual vs plan, before card payments. Positive is good.
+      vsPlan:
+        income -
+        expense -
+        (sum("income", "planned") - sum("expense", "planned")),
+      recorded: entries.length,
+      cardMin: paid + leftMin,
+      cardFull: paid + leftFull,
+      netMin: income - expense - paid - leftMin,
+      netFull: income - expense - paid - leftFull,
       pendingMin: open
-        ? base -
-          cardLines.reduce((a, c) => a + c.leftMin, 0) -
-          (month === current ? overdueMin : 0)
+        ? base - leftMin - (month === current ? overdueMin : 0)
         : 0,
       pendingFull: open
-        ? base -
-          cardLines.reduce((a, c) => a + c.leftFull, 0) -
-          (month === current ? overdueFull : 0)
+        ? base - leftFull - (month === current ? overdueFull : 0)
         : 0,
     };
   }
@@ -204,6 +241,12 @@ export function budgetSnapshot(db: DB, query: Record<string, unknown> = {}) {
     .all()
     .map((st) => ({ ...st, cardName: cardName.get(st.cardId) ?? "Kart" }));
   const accounts = db.select().from(s.accounts).orderBy(s.accounts.name).all();
+  // ponytail: every entry ships to the client; page by month past ~10k rows.
+  const transactions = db
+    .select()
+    .from(s.transactions)
+    .orderBy(desc(s.transactions.date))
+    .all();
   const cash = accounts.reduce((a, x) => a + x.balance, 0);
   const investments = holdingView(
     db.select().from(s.holdings).orderBy(s.holdings.boughtOn).all(),
@@ -222,7 +265,8 @@ export function budgetSnapshot(db: DB, query: Record<string, unknown> = {}) {
     statements,
     accounts,
     investments,
-    table: monthTable(items, statements, cash, from, day),
+    transactions,
+    table: monthTable(items, statements, transactions, cash, from, day),
     totals: {
       cash,
       invested,
@@ -490,6 +534,51 @@ export function budgetRouter(db: DB) {
       db
         .delete(s.holdings)
         .where(eq(s.holdings.id, id(req.params.id)))
+        .returning()
+        .get(),
+    );
+    res.json({ data: { id: req.params.id } });
+  });
+
+  const transactionValues = (body: unknown) => {
+    const input = transactionInput.parse(body);
+    if (!input.itemId) return input;
+    const item = one(
+      db
+        .select()
+        .from(s.budgetItems)
+        .where(eq(s.budgetItems.id, input.itemId))
+        .get(),
+    );
+    return { ...input, direction: item.direction };
+  };
+  router.post("/transactions", (req, res) => {
+    const row = db
+      .insert(s.transactions)
+      .values({ id: randomUUID(), ...transactionValues(req.body) })
+      .returning()
+      .get();
+    res.status(201).json({ data: row });
+  });
+  router.patch("/transactions/:id", (req, res) => {
+    const existing = one(
+      db
+        .select()
+        .from(s.transactions)
+        .where(eq(s.transactions.id, id(req.params.id)))
+        .get(),
+    );
+    db.update(s.transactions)
+      .set(transactionValues({ ...existing, ...req.body }))
+      .where(eq(s.transactions.id, existing.id))
+      .run();
+    res.json({ data: { id: existing.id } });
+  });
+  router.delete("/transactions/:id", (req, res) => {
+    one(
+      db
+        .delete(s.transactions)
+        .where(eq(s.transactions.id, id(req.params.id)))
         .returning()
         .get(),
     );

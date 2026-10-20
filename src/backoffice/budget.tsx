@@ -16,6 +16,8 @@ type Card = BudgetSnapshot["cards"][number];
 type Statement = BudgetSnapshot["statements"][number];
 type Account = BudgetSnapshot["accounts"][number];
 type Lot = BudgetSnapshot["investments"]["lots"][number];
+type Entry = BudgetSnapshot["transactions"][number];
+type Line = BudgetSnapshot["table"][number]["lines"][number];
 type Editor =
   | { kind: "item"; row?: Item }
   | { kind: "card"; row?: Card }
@@ -23,10 +25,12 @@ type Editor =
   | { kind: "pay"; row: Statement }
   | { kind: "account"; row?: Account }
   | { kind: "holding"; row?: Lot }
-  | { kind: "price"; asset: string; price?: number };
+  | { kind: "price"; asset: string; price?: number }
+  | { kind: "transaction"; row?: Entry; preset?: Partial<Entry> };
 
 const sections = [
   { id: "summary", label: "Özet" },
+  { id: "log", label: "Hareketler" },
   { id: "flows", label: "Gelir ve giderler" },
   { id: "cards", label: "Kredi kartları" },
   { id: "assets", label: "Hesaplar ve yatırımlar" },
@@ -86,7 +90,8 @@ export function Budget() {
     sections.find((s) => s.id === params.get("section"))?.id || "summary";
   const [from, setFrom] = useState<string | null>(null),
     [full, setFull] = useState(false),
-    [selected, setSelected] = useState<string | null>(null);
+    [selected, setSelected] = useState<string | null>(null),
+    [logMonth, setLogMonth] = useState<string | null>(null);
   const [data, setData] = useState<BudgetSnapshot | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -147,6 +152,56 @@ export function Budget() {
     0,
   );
   const unpaid = data.statements.filter((st) => st.paidAmount < st.balance);
+  const thisMonth = data.today.slice(0, 7);
+  const logKey = logMonth || thisMonth;
+  const logRows = data.transactions.filter((t) => t.date.startsWith(logKey));
+  const itemName = new Map(data.items.map((i) => [i.id, i.name]));
+  const record = (preset?: Partial<Entry>) =>
+    setEditor({ kind: "transaction", preset });
+  const lineRow = (l: Line) => {
+    const diff = l.actual === null || !l.planned ? 0 : l.actual - l.planned;
+    const good = l.direction === "income" ? diff > 0 : diff < 0;
+    return (
+      <div className="bo-list-row" key={l.id}>
+        <div>
+          <span>{l.name}</span>
+          <small>
+            {!l.planned
+              ? `Plan dışı · ${dateLabel(l.date)}`
+              : l.actual === null
+                ? `Plan · ${dateLabel(l.date)}`
+                : `Plan ${tl(l.planned)}`}
+          </small>
+        </div>
+        <div className="bo-row-end">
+          {diff !== 0 && (
+            <small className={good ? "bo-gain" : "bo-danger"}>
+              {signed(diff)}
+            </small>
+          )}
+          <strong className={l.actual === null ? "bo-muted" : ""}>
+            {tl(l.amount)}
+          </strong>
+          {l.actual === null && detail.month <= thisMonth && (
+            <button
+              className="bo-link"
+              onClick={() =>
+                record({
+                  itemId: l.id,
+                  name: l.name,
+                  direction: l.direction,
+                  amount: l.planned,
+                  date: l.date < data.today ? l.date : data.today,
+                })
+              }
+            >
+              Gerçekleşti
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <main className="bo-main">
@@ -317,7 +372,31 @@ export function Budget() {
             </div>
           </section>
           <section className="bo-section">
-            <h2>{monthLabel(detail.month)} ayrıntısı</h2>
+            <div className="bo-section-heading">
+              <h2>
+                {monthLabel(detail.month)} ayrıntısı
+                {detail.recorded > 0 && (
+                  <span
+                    className={
+                      detail.vsPlan < 0
+                        ? "bo-danger"
+                        : detail.vsPlan > 0
+                          ? "bo-gain"
+                          : ""
+                    }
+                  >
+                    Plana göre {signed(detail.vsPlan)}
+                  </span>
+                )}
+              </h2>
+              <button className="bo-button" onClick={() => record()}>
+                <Plus size={16} /> Hareket ekle
+              </button>
+            </div>
+            <p className="bo-muted">
+              Soluk tutarlar plandır. “Gerçekleşti” ile gerçek tutarı gir; fark
+              ve tahmini bakiye ona göre güncellenir.
+            </p>
             <div className="bo-columns bo-three">
               {(["income", "expense"] as const).map((dir) => {
                 const lines = detail.lines.filter((l) => l.direction === dir);
@@ -325,12 +404,7 @@ export function Budget() {
                   <div key={dir}>
                     <h3>{dir === "income" ? "Gelirler" : "Giderler"}</h3>
                     {lines.length ? (
-                      lines.map((l) => (
-                        <div className="bo-list-row" key={l.id}>
-                          <span>{l.name}</span>
-                          <strong>{tl(l.amount)}</strong>
-                        </div>
-                      ))
+                      lines.map(lineRow)
                     ) : (
                       <p className="bo-muted">Kalem yok.</p>
                     )}
@@ -360,6 +434,126 @@ export function Budget() {
             </div>
           </section>
         </>
+      )}
+
+      {section === "log" && (
+        <section className="bo-section">
+          <div className="bo-section-heading">
+            <div className="bo-actions">
+              <button
+                className="bo-button"
+                aria-label="Önceki ay"
+                onClick={() => setLogMonth(shiftMonth(logKey, -1))}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <h2>{monthLabel(logKey)}</h2>
+              <button
+                className="bo-button"
+                aria-label="Sonraki ay"
+                onClick={() => setLogMonth(shiftMonth(logKey, 1))}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <button className="bo-button primary" onClick={() => record()}>
+              <Plus size={16} /> Hareket ekle
+            </button>
+          </div>
+          <p className="bo-muted">
+            Gerçekte yatan ve ödenen tutarlar. Plandaki bir kaleme bağlanan
+            hareket o ay planın yerine geçer; fazla mesai gibi ekstralar plan
+            dışı girilir. Kartla yaptığın harcamaları girme, onlar ekstreyle
+            gelir.
+          </p>
+          {logRows.length ? (
+            <>
+              <div className="bo-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tarih</th>
+                      <th>Hareket</th>
+                      <th>Tutar</th>
+                      <th>İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logRows.map((t) => (
+                      <tr key={t.id}>
+                        <td>{dateLabel(t.date)}</td>
+                        <td>
+                          <strong>{t.name}</strong>
+                          <small>
+                            {t.itemId
+                              ? `${itemName.get(t.itemId)} · plan yerine`
+                              : "Plan dışı"}
+                            {t.note && ` · ${t.note}`}
+                          </small>
+                        </td>
+                        <td
+                          className={t.direction === "income" ? "bo-gain" : ""}
+                        >
+                          {t.direction === "income" ? "+" : "−"}
+                          {tl(t.amount)}
+                        </td>
+                        <td>
+                          <div className="bo-actions">
+                            <button
+                              className="bo-link"
+                              onClick={() =>
+                                setEditor({ kind: "transaction", row: t })
+                              }
+                            >
+                              Düzenle
+                            </button>
+                            <button
+                              className="bo-link danger"
+                              onClick={() =>
+                                setConfirm({
+                                  title: "Hareketi sil",
+                                  body: `${dateLabel(t.date)} tarihli ${t.name} hareketi silinecek.`,
+                                  path: `/budget/transactions/${t.id}`,
+                                })
+                              }
+                            >
+                              Sil
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="bo-finance-totals">
+                <p>
+                  Gelir{" "}
+                  <strong>
+                    {tl(
+                      logRows
+                        .filter((t) => t.direction === "income")
+                        .reduce((a, t) => a + t.amount, 0),
+                    )}
+                  </strong>{" "}
+                  · Gider{" "}
+                  <strong>
+                    {tl(
+                      logRows
+                        .filter((t) => t.direction === "expense")
+                        .reduce((a, t) => a + t.amount, 0),
+                    )}
+                  </strong>
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="bo-empty">
+              Bu ay kayıtlı hareket yok. Maaş yattığında veya kira ödendiğinde
+              buradan ya da Özet’teki “Gerçekleşti” ile gir.
+            </div>
+          )}
+        </section>
       )}
 
       {section === "flows" && (
@@ -880,6 +1074,14 @@ function BudgetEditor({
         ? String((editor.row.paidAmount || editor.row.minimum) / 100)
         : "",
     );
+  const entry =
+    editor.kind === "transaction" ? { ...editor.preset, ...editor.row } : {};
+  const [link, setLink] = useState(entry.itemId || ""),
+    [entryName, setEntryName] = useState(entry.name || ""),
+    [entryAmount, setEntryAmount] = useState(
+      entry.amount ? String(entry.amount / 100) : "",
+    );
+  const linked = data.items.find((i) => i.id === link);
   const title = {
     item:
       editor.kind === "item" && editor.row ? "Kalemi düzenle" : "Kalem ekle",
@@ -894,6 +1096,10 @@ function BudgetEditor({
     holding:
       editor.kind === "holding" && editor.row ? "Alımı düzenle" : "Alım ekle",
     price: editor.kind === "price" ? `${editor.asset} güncel fiyatı` : "",
+    transaction:
+      editor.kind === "transaction" && editor.row
+        ? "Hareketi düzenle"
+        : "Hareket ekle",
   }[editor.kind];
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -945,6 +1151,15 @@ function BudgetEditor({
           quantity: Number(val("quantity")),
           buyPrice: kurus("buyPrice"),
           boughtOn: val("boughtOn"),
+          note: val("note"),
+        });
+      if (editor.kind === "transaction")
+        await save("transactions", editor.row?.id, {
+          itemId: linked?.id ?? null,
+          name: entryName.trim(),
+          direction: linked?.direction ?? val("direction"),
+          amount: Math.round(Number(entryAmount) * 100),
+          date: val("date"),
           note: val("note"),
         });
       if (editor.kind === "price")
@@ -1197,6 +1412,87 @@ function BudgetEditor({
               Aynı adı kullanan alımlar tek varlıkta toplanır ve ortalaması
               alınır.
             </small>
+          </>
+        )}
+        {editor.kind === "transaction" && (
+          <>
+            <div className="bo-form-grid">
+              <Input
+                label="Tarih"
+                name="date"
+                type="date"
+                value={entry.date || data.today}
+                required
+              />
+              <Field label="Plandaki kalem">
+                <select
+                  value={link}
+                  onChange={(e) => {
+                    const item = data.items.find(
+                      (i) => i.id === e.target.value,
+                    );
+                    setLink(e.target.value);
+                    if (item) {
+                      setEntryName(item.name);
+                      setEntryAmount(String(item.amount / 100));
+                    }
+                  }}
+                >
+                  <option value="">Plan dışı</option>
+                  {data.items.map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <div className="bo-form-grid">
+              <Field label="Açıklama">
+                <input
+                  value={entryName}
+                  onChange={(e) => setEntryName(e.target.value)}
+                  required
+                  maxLength={160}
+                />
+              </Field>
+              {linked ? (
+                <Field label="Tür">
+                  <input
+                    value={linked.direction === "income" ? "Gelir" : "Gider"}
+                    disabled
+                  />
+                </Field>
+              ) : (
+                <Field label="Tür">
+                  <select
+                    name="direction"
+                    defaultValue={entry.direction || "expense"}
+                  >
+                    <option value="income">Gelir</option>
+                    <option value="expense">Gider</option>
+                  </select>
+                </Field>
+              )}
+            </div>
+            <Field label="Gerçek tutar (TL)">
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                max="1000000000"
+                required
+                value={entryAmount}
+                onChange={(e) => setEntryAmount(e.target.value)}
+              />
+            </Field>
+            {linked && (
+              <small>
+                Plan {tl(linked.amount)}. Bu ay için plan yerine bu tutar
+                sayılır.
+              </small>
+            )}
+            <Input label="Not" name="note" value={entry.note} />
           </>
         )}
         {editor.kind === "price" && (
