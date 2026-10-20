@@ -100,7 +100,7 @@ Migration `0001` only adds tables. Take the usual SQLite backup before deploying
 
 - **Entry:** a clock range (office: planned exit → actual exit, early exit counts 0; remote: start → end, wraps midnight) or a declared duration only (travel, unclear hours). Any number per day, editable later.
 - **Payment status:** each entry is “Bekliyor” until marked paid against a payslip month (bulk select → “Ödendi işaretle”). Unpaid hours across all months are shown with expected net pay = net salary ÷ 225 × 1,5 per hour, matching the August 2026 payslip (65.000 → 433,33 TL/h). BES (~3 % of gross) is not subtracted. Net salary lives in `settings.netSalary` (kuruş).
-- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` follows the employer declaration sheet: title row, Tarih, Gün, Fazla Mesai Süresi (hh:mm), Birim, Nedeni, plus Saat Aralığı, and a total row. Semicolon CSV with BOM for Turkish-locale Excel; cells starting with `= + - @` get a `'` prefix.
+- **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` returns `mesai-YYYY-MM.xlsx` in the employer declaration layout: title row, Tarih (date cell), Gün, Fazla Mesai Süresi (`[h]:mm` duration cell), Birim, Nedeni, Saat Aralığı, and a `SUM` total. Written by the dependency-free `server/backoffice/xlsx.ts` (single sheet, stored zip, inline strings, so text is never evaluated as a formula); checked with openpyxl and `unzip -t`.
 - Migration `0004` rebuilds `workSessions` to make times nullable. drizzle-kit generated an INSERT selecting the new columns from the old table; it was corrected by hand to select `NULL` and checked against a populated database.
 
 ## Verification
@@ -156,3 +156,7 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 
 - Commit `0cc3d7d`. Image `portfolio-backoffice:work2-0cc3d7d` (also `latest`) over `work-8f86a4a`; release files `/opt/portfolio-releases/work2-0cc3d7d`. Pre-migration backup `/var/backups/portfolio/pre-work2-0cc3d7d.sqlite`; rollback image `portfolio-backoffice:rollback-before-work2-0cc3d7d`. Rolling back needs the backup restored, because the old code requires non-null times.
 - Imported the 15 declared entries (52,5 h, Aug–Oct) from the owner's declaration sheet as unpaid durations, and set net salary 65.000 TL. The August export rendered on production matches the original sheet.
+
+### xlsx export: 2026-10-20
+
+- Commit `3ae6659`, code only. Image `portfolio-backoffice:xlsx-3ae6659` (also `latest`) over `work2-0cc3d7d`; rollback image `portfolio-backoffice:rollback-before-xlsx-3ae6659`, no database step. September exported from production opened in openpyxl with typed dates, durations and the SUM formula.
