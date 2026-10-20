@@ -7,6 +7,7 @@ import * as s from "./schema";
 import { period, workSessionInput } from "../../shared/backoffice";
 import { today } from "./dates";
 import { HttpError } from "./errors";
+import { Style, excelDate, xlsx } from "./xlsx";
 
 type Session = typeof s.workSessions.$inferSelect;
 const toMinutes = (clock: string) =>
@@ -92,34 +93,54 @@ const weekday = (date: string) =>
   new Intl.DateTimeFormat("tr-TR", { weekday: "long", timeZone: "UTC" }).format(
     new Date(`${date}T12:00:00Z`),
   );
-const clock = (m: number) =>
-  `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-function cell(value: string) {
-  // Neutralise spreadsheet formulas, then quote for ; " and line breaks.
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return /[;"\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-}
 
 /**
  * Mirrors the declaration sheet handed to the employer (Tarih, Gün, Süre,
- * Birim, Nedeni). Semicolon CSV with BOM so Turkish-locale Excel opens columns.
+ * Birim, Nedeni) with real date/duration cells and a SUM total.
  */
-export function workCsv(data: WorkSnapshot) {
-  const rows = [
-    [`${monthName(data.month)} Ayı Ekstra Süreler`],
-    ["Tarih", "Gün", "Fazla Mesai Süresi", "Birim", "Nedeni", "Saat Aralığı"],
-    ...data.sessions.map((w) => [
-      w.date.split("-").reverse().join("."),
-      weekday(w.date),
-      clock(w.minutes),
-      "SAAT",
-      w.note ||
-        (w.kind === "office" ? "Ofiste fazla mesai" : "Ofis dışı çalışma"),
-      w.start && w.end ? `${w.start}–${w.end}` : "",
-    ]),
-    ["Toplam", "", clock(data.totals.all), "SAAT", "", ""],
-  ];
-  return "\uFEFF" + rows.map((r) => r.map(cell).join(";")).join("\r\n") + "\r\n";
+export function workXlsx(data: WorkSnapshot) {
+  const title = `${monthName(data.month)} Ayı Ekstra Süreler`;
+  const first = 3,
+    last = first + data.sessions.length - 1;
+  const bold = (v: string) => ({ v, s: Style.Bold });
+  return xlsx(
+    `${monthName(data.month)} ${data.month.slice(0, 4)}`,
+    [
+      [bold(title)],
+      [
+        "Tarih",
+        "Gün",
+        "Fazla Mesai Süresi",
+        "Birim",
+        "Nedeni",
+        "Saat Aralığı",
+      ].map(bold),
+      ...data.sessions.map((w) => [
+        { v: excelDate(w.date), s: Style.Date },
+        weekday(w.date),
+        { v: w.minutes / 1440, s: Style.Duration },
+        "SAAT",
+        {
+          v:
+            w.note ||
+            (w.kind === "office" ? "Ofiste fazla mesai" : "Ofis dışı çalışma"),
+          s: Style.Wrap,
+        },
+        w.start && w.end ? `${w.start}–${w.end}` : null,
+      ]),
+      [
+        bold("Toplam"),
+        null,
+        {
+          v: data.totals.all / 1440,
+          s: Style.BoldDuration,
+          ...(data.sessions.length && { f: `SUM(C${first}:C${last})` }),
+        },
+        bold("SAAT"),
+      ],
+    ],
+    [12, 12, 18, 8, 80, 14],
+  );
 }
 
 export function workRouter(db: DB) {
@@ -138,10 +159,7 @@ export function workRouter(db: DB) {
   );
   router.get("/export", (req, res) => {
     const data = workSnapshot(db, req.query);
-    res
-      .type("text/csv; charset=utf-8")
-      .attachment(`mesai-${data.month}.csv`)
-      .send(workCsv(data));
+    res.attachment(`mesai-${data.month}.xlsx`).send(workXlsx(data));
   });
   router.post("/", (req, res) => {
     const row = db

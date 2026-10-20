@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import request from "supertest";
 import { openDatabase } from "./database";
 import { createApp } from "../app";
+import { crc32 } from "node:zlib";
 import { overtimeAmount, overtimeHourly, sessionMinutes } from "./work";
+import { excelDate } from "./xlsx";
 
 test("Session length: remote work wraps midnight, early office exit counts as zero", () => {
   assert.equal(sessionMinutes("remote", "20:00", "22:00"), 120);
@@ -18,7 +20,7 @@ test("Overtime pay matches the August 2026 payslip (65.000 net, 26,5 h = 11.483,
   assert.equal(overtimeAmount(6_500_000, 26.5 * 60), 1_148_333);
 });
 
-test("Work log API: ranges or durations, payment status, unpaid total and employer-format CSV", async () => {
+test("Work log API: ranges or durations, payment status, unpaid total and employer-format xlsx", async () => {
   const store = openDatabase(":memory:");
   try {
     const app = createApp(
@@ -126,23 +128,40 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
       200,
     );
 
-    const csv = await request(app)
+    const file = await request(app)
       .get("/api/backoffice/work/export?month=2026-10")
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c: Buffer) => chunks.push(c));
+        res.on("end", () => done(null, Buffer.concat(chunks)));
+      })
       .expect(200);
+    assert.match(String(file.headers["content-type"]), /spreadsheetml\.sheet/);
     assert.match(
-      String(csv.headers["content-disposition"]),
-      /mesai-2026-10\.csv/,
+      String(file.headers["content-disposition"]),
+      /mesai-2026-10\.xlsx/,
     );
-    const lines = csv.text.replace(/^\uFEFF/, "").trim().split("\r\n");
-    assert.deepEqual(lines, [
-      "Ekim Ayı Ekstra Süreler",
-      "Tarih;Gün;Fazla Mesai Süresi;Birim;Nedeni;Saat Aralığı",
-      "02.10.2026;Cuma;06:00;SAAT;İlknak (İzmir) Dönüş Yolculuğu;",
-      `03.10.2026;Cumartesi;04:00;SAAT;"'=HYPERLINK(""x"")";`,
-      "20.10.2026;Salı;01:30;SAAT;Ofiste fazla mesai;",
-      '20.10.2026;Salı;01:00;SAAT;"Canlı ortam; hata";21:00–22:00',
-      "Toplam;;12:30;SAAT;;",
-    ]);
+    const zip: Buffer = file.body;
+    assert.equal(zip.subarray(0, 4).toString("latin1"), "PK\x03\x04");
+    // First entry is stored: its CRC must match its bytes.
+    const nameLength = zip.readUInt16LE(26),
+      size = zip.readUInt32LE(18);
+    const first = zip.subarray(30 + nameLength, 30 + nameLength + size);
+    assert.equal(zip.readUInt32LE(14), crc32(first));
+    const sheet = zip.toString("utf8");
+    for (const part of [
+      '<sheet name="Ekim 2026"',
+      ">Ekim Ayı Ekstra Süreler</t>",
+      ">Fazla Mesai Süresi</t>",
+      `<c r="A3" s="2"><v>${excelDate("2026-10-02")}</v></c>`,
+      `<c r="C3" s="3"><v>${360 / 1440}</v></c>`,
+      ">İlknak (İzmir) Dönüş Yolculuğu</t>",
+      ">=HYPERLINK(&quot;x&quot;)</t>",
+      ">21:00–22:00</t>",
+      "<f>SUM(C3:C6)</f>",
+    ])
+      assert.ok(sheet.includes(part), part);
 
     await request(
       createApp(
