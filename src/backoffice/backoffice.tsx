@@ -14,12 +14,14 @@ import {
   Plus,
   RefreshCw,
   Wallet,
+  Clock,
 } from "lucide-react";
 import type { Snapshot } from "../../server/backoffice/router";
 import type { checks } from "../../server/backoffice/schema";
 import { ApiError, api, money, dateLabel, timeLabel } from "./api";
 import { EditorDialog, Modal, type Editor } from "./forms";
 import { Budget } from "./budget";
+import { Work } from "./work";
 import "./backoffice.css";
 
 const auth = createAuthClient();
@@ -66,6 +68,7 @@ export default function Backoffice() {
   const [params, setParams] = useSearchParams();
   const projectId = params.get("project") || undefined;
   const budget = params.get("view") === "budget";
+  const work = params.get("view") === "work";
   const tab: Tab =
     tabs.find((t) => t.id === params.get("tab"))?.id || "overview";
   const [data, setData] = useState<Snapshot | null>(null),
@@ -251,7 +254,7 @@ export default function Backoffice() {
           ozdinc.dev<span>Backoffice</span>
         </Link>
         <button
-          className={`bo-nav ${!projectId && !budget ? "selected" : ""}`}
+          className={`bo-nav ${!projectId && !budget && !work ? "selected" : ""}`}
           onClick={() => navigate(undefined, "overview")}
         >
           <LayoutDashboard size={18} /> Tüm projeler
@@ -261,6 +264,12 @@ export default function Backoffice() {
           onClick={() => setParams({ view: "budget" })}
         >
           <Wallet size={18} /> Kişisel bütçe
+        </button>
+        <button
+          className={`bo-nav ${work ? "selected" : ""}`}
+          onClick={() => setParams({ view: "work" })}
+        >
+          <Clock size={18} /> Mesai
         </button>
         <div className="bo-sidebar-title">
           <span>Projeler</span>
@@ -291,7 +300,7 @@ export default function Backoffice() {
             .map((p) => (
               <button
                 key={p.id}
-                className={`bo-nav ${projectId === p.id && !budget ? "selected" : ""}`}
+                className={`bo-nav ${projectId === p.id && !budget && !work ? "selected" : ""}`}
                 onClick={() => navigate(p.id, "overview")}
               >
                 <span className="bo-project-initial">{p.name.slice(0, 1)}</span>
@@ -327,6 +336,8 @@ export default function Backoffice() {
       </aside>
       {budget ? (
         <Budget />
+      ) : work ? (
+        <Work />
       ) : (
       <main className="bo-main">
         <header className="bo-page-header">

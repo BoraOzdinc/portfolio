@@ -236,3 +236,16 @@ export const transactions = sqliteTable(
   },
   (t) => [index("transaction_date").on(t.date)],
 );
+export const workSessions = sqliteTable(
+  "workSessions",
+  {
+    id: text().primaryKey(),
+    date: text().notNull(),
+    // office: planned exit → actual exit; remote: work start → end.
+    kind: text().$type<"office" | "remote">().notNull(),
+    start: text().notNull(),
+    end: text().notNull(),
+    note: text().notNull(),
+  },
+  (t) => [index("work_date").on(t.date)],
+);

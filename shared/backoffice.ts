@@ -120,3 +120,13 @@ export const transactionInput = z.object({
   date,
   note: text.default(""),
 });
+const clock = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Saat SS:DD biçiminde olmalı.");
+export const workSessionInput = z.object({
+  date,
+  kind: z.enum(["office", "remote"]),
+  start: clock,
+  end: clock,
+  note: text.default(""),
+});

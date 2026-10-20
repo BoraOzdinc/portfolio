@@ -713,6 +713,31 @@
 .bo-money-grid.four {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+.bo-work-form {
+  max-width: 760px;
+  padding: 22px;
+  background: var(--bo-panel);
+  border: 1px solid var(--bo-line);
+  border-radius: 12px;
+}
+.bo-work-form h2 {
+  margin-bottom: 16px;
+}
+.bo-work-form .bo-segmented {
+  justify-self: start;
+}
+.bo-work-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.bo-form-grid.bo-work-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.bo-work-note {
+  min-width: 220px;
+  white-space: pre-wrap;
+}
 .bo-gain {
   color: #a3dfc7;
 }

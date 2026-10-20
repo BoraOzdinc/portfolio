@@ -17,6 +17,7 @@ import { monitorView } from "./monitoring";
 import { addDays, today } from "./dates";
 import { HttpError } from "./errors";
 import { budgetRouter } from "./budget";
+import { workRouter } from "./work";
 
 export type Identity = { name: string; allowed: boolean } | null;
 export type Identify = (req: Request) => Promise<Identity>;
@@ -176,6 +177,7 @@ export function backofficeRouter(
     res.json({ data: res.locals.identity as Identity }),
   );
   router.use("/budget", budgetRouter(db));
+  router.use("/work", workRouter(db));
   router.get("/snapshot", (req, res) =>
     res.json({ data: snapshot(db, req.query) }),
   );
