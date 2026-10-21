@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { getProjectBySlug, projects } from "@/data/projects";
 
 export function FeaturedProject() {
-  const project = getProjectBySlug("arcura");
+  const project = getProjectBySlug("melsashopp-dashboard");
 
   if (!project) return null;
 
@@ -17,15 +17,15 @@ export function FeaturedProject() {
         <div className="home-featured-copy">
           <p className="home-featured-label">Featured project</p>
           <h3>{project.title}</h3>
-          <p>A shared workspace for dental teams to submit scans, follow a case, and receive surgical plans.</p>
+          <p>An online store for 3D printers and filament, with payments, invoicing, and shipping running behind it.</p>
           <dl className="home-featured-details">
             <div>
               <dt>The challenge</dt>
-              <dd>Keep large clinical files, case updates, and planning deliverables together.</dd>
+              <dd>Take real orders and real money without losing track of one, from checkout to the carrier.</dd>
             </div>
             <div>
               <dt>My part</dt>
-              <dd>Designed and built the full platform, from the submission flow to the admin workspace.</dd>
+              <dd>Designed, built, and run the whole product, from the storefront to the operator dashboard.</dd>
             </div>
           </dl>
           <Link className="home-featured-link" to={`/projects/${project.slug}`}>
@@ -33,11 +33,11 @@ export function FeaturedProject() {
           </Link>
         </div>
         <Link className="home-featured-preview" to={`/projects/${project.slug}`} aria-label={`View ${project.title} project details`}>
-          <img src={project.image} alt={`${project.title} application interface`} loading="lazy" decoding="async" />
+          <img src={project.image} alt={`${project.title} storefront`} loading="lazy" decoding="async" />
         </Link>
       </article>
       <div className="home-featured-browse">
-        <p>There’s more: commerce tools, clinic websites, and data products.</p>
+        <p>There’s more: clinic platforms, commerce tools, and data products.</p>
         <Link className="home-featured-link" to="/projects">View all {projects.length} projects <ArrowUpRight size={17} aria-hidden="true" /></Link>
       </div>
     </section>

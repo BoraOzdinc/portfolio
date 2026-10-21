@@ -1,5 +1,5 @@
 const experiences = [
-  { company: "Ramex Trading", role: "IT Technician", period: "Oct 2025 – Present", location: "UAE / Remote", description: "Supporting employee hardware, troubleshooting connected devices, and coordinating infrastructure needs with the development team." },
+  { company: "Gümüşdoğa Su Ürünleri", role: "SAP Project Assistant", period: "Jul 2026 – Present", location: "Milas / Muğla", description: "Assisting the SAP project team, building on SAP Learning’s SAP Fiori course covering Fiori concepts, application development, and deployment." },
   { company: "Firefly", role: "Frontend Developer", period: "Jul 2023 – Jun 2025", location: "Remote", description: "Built React and TypeScript features for the Opportunity Manager platform, including map-based targeting and campaign planning tools within a micro-frontend team." },
 ];
 
@@ -8,7 +8,7 @@ export function Experience() {
     <section id="experience" className="home-experience home-container" aria-labelledby="experience-title">
       <div className="home-experience-intro">
         <h2 id="experience-title">Experience</h2>
-        <p>My background spans frontend development and hands-on IT support.</p>
+        <p>My background spans frontend development and SAP projects.</p>
       </div>
       <div className="home-experience-list">
         {experiences.map((experience) => (

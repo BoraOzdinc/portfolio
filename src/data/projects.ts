@@ -34,6 +34,111 @@ function assetUrl(path: string): string {
 
 export const projects: Project[] = [
   {
+    slug: "melsashopp-dashboard",
+    title: "MelsaShopp",
+    description:
+      "E-commerce store and operations dashboard for 3D printers, filament, and spare parts",
+    longDescription:
+      "MelsaShopp started as an internal dashboard for tracking orders, customers, and shipments, and grew into a live e-commerce business. Today one Next.js app runs both the public storefront at melsashopp.com and the operator dashboard behind it. Customers browse the catalog, check out as guests or with an account, pay through PayTR, and follow, cancel, or return their orders on their own. Operators handle fulfillment, BasitKargo shipping labels, returns and refunds, and official GİB e-Arşiv invoices from the same panel, while scheduled jobs reconcile payments, sync cargo status, and deliver e-mail in the background.",
+    tags: [
+      "Next.js 15",
+      "React 19",
+      "TypeScript",
+      "tRPC v11",
+      "Drizzle ORM",
+      "PostgreSQL",
+      "Better Auth",
+      "PayTR",
+      "GİB e-Arşiv",
+      "BasitKargo",
+      "Resend",
+      "Redis",
+      "Sentry",
+      "Tailwind CSS",
+    ],
+    image: assetUrl("melsashopp/storefront.png"),
+    link: "https://melsashopp.com",
+    features: [
+      "Public storefront with categories, collections, typo-tolerant search, variant picking, wishlist, and verified reviews",
+      "Guest and account checkout with PayTR iFrame payments, where an order is only created once the signed payment callback confirms the money",
+      "Payment reconciliation and refund jobs that recover dropped payment forms and never turn collected money into a rejected order",
+      "GİB e-Arşiv invoicing with an hourly queue and batch signing, where one SMS code approves every pending invoice",
+      "BasitKargo shipping with label creation, idempotent retries, status syncing, and return labels",
+      "Item-level returns and self-service cancellations, with inspection, suggested refunds, and stock and ledger updates",
+      "Transactional e-mail through a Resend outbox with idempotent retries and delivery webhooks",
+      "CI deploys to a VPS with database backups, migrations tested on a copy first, health checks, and cron monitoring",
+    ],
+    role: "Designed, built, and run the whole product, from the storefront and checkout to the payment, invoicing, and cargo integrations, the operator dashboard, and the deployment pipeline behind them.",
+    screenshots: [
+      {
+        image: assetUrl("melsashopp/search.png"),
+        title: "Search and Filters",
+        description:
+          "Typo-tolerant search runs across product names, brands, and stock codes, with category, brand, price, and spec filters alongside. Prices include VAT, and materials like PLA and PETG are listed first by default, since they are what most customers come for.",
+      },
+      {
+        image: assetUrl("melsashopp/product.png"),
+        title: "Product Detail",
+        description:
+          "Each product page shows its gallery, variants with live stock status, stock codes, reviews, and Markdown descriptions. Picking a variant updates the price and availability right away.",
+      },
+      {
+        image: assetUrl("melsashopp/cart-drawer.png"),
+        title: "Add to Cart",
+        description:
+          "Adding a product opens a cart drawer instead of leaving the page, so customers can keep browsing or go straight to payment. Prices are checked again on the server before payment, so a stale page never sets the price.",
+      },
+      {
+        image: assetUrl("melsashopp/checkout.png"),
+        title: "Payment-First Checkout",
+        description:
+          "Guests and signed-in customers share one checkout. Submitting it only holds stock and campaign budget for the session, and the order is created once PayTR's signed callback confirms the payment. If anything goes wrong after the money is collected, the order is flagged for an operator instead of being rejected, and regression tests guard that rule.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-overview.png"),
+        title: "Dashboard Overview",
+        description:
+          "The operator dashboard opens on what needs doing today: active orders, payments still to collect, parcels waiting for a shipping label, and the most recent orders, with shortcuts into each queue.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-orders.png"),
+        title: "Order Queues",
+        description:
+          "Orders are split into work queues such as action needed, ready to ship, label printed, awaiting payment, and returns. Selecting an order opens a side panel with its next step, so operators can work through a queue without leaving the list.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-order-detail.png"),
+        title: "Order Detail",
+        description:
+          "Each order shows its progress from payment to delivery, the items with VAT and discounts, every PayTR payment attempt with its reference, and a timeline of what happened when. Customer details are blurred here for privacy.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-order-return.png"),
+        title: "Returns and Refunds",
+        description:
+          "Customers can cancel an order or return specific items from their account. A return moves through request, approval, pickup, inspection, and refund. Inspection records the stock decision and a suggested refund amount, and the refund itself goes back to the card through PayTR.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-invoices.png"),
+        title: "Invoices with One SMS Code",
+        description:
+          "Order invoices wait in a queue until the parcel is handed to the carrier. An admin requests a single SMS code that creates and signs every pending invoice on the GİB portal, unfinished drafts are cleaned up automatically, and invoices that miss the legal seven-day window are never signed.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-product-edit.png"),
+        title: "Product Editor",
+        description:
+          "Products are set up in four steps: product type, variants and pricing, specs, and store publishing. The product type decides how cost is calculated, and a live summary flags what is still missing before a product can go on sale.",
+      },
+      {
+        image: assetUrl("melsashopp/dash-store-health.png"),
+        title: "Store Readiness Check",
+        description:
+          "Before taking orders, a checklist confirms that products are published, all legal documents are live, and payments, shipping, and invoicing are configured, with a link to fix each item that is still missing.",
+      },
+    ],
+  },
+  {
     slug: "arcura",
     title: "Arcura",
     description:
@@ -140,91 +245,6 @@ export const projects: Project[] = [
       "SEO-optimized structure and metadata",
     ],
     role: "Led the frontend development, translating design mockups into a fully functional and responsive website. Handled deployment and hosting configuration on AWS.",
-  },
-  {
-    slug: "melsashopp-dashboard",
-    title: "MelsaShopp Dashboard",
-    description:
-      "Operations dashboard for small Bambu-based 3D print businesses",
-    longDescription:
-      "MelsaShopp Dashboard brings the day-to-day workflow of a small print farm into one system. Teams can manage products and variants, create customer orders, map print files to sellable outputs, plan batches from real demand and stock gaps, monitor Bambu printers with live status and AMS visibility, and move finished orders through packing and shipping. The result is a clearer path from incoming order to shipped package, with less guesswork and fewer disconnected tools.",
-    tags: [
-      "Next.js 15",
-      "TypeScript",
-      "tRPC v11",
-      "Drizzle ORM",
-      "PostgreSQL",
-      "MQTT",
-      "AWS S3",
-      "Better Auth",
-      "Tailwind CSS",
-    ],
-    image: assetUrl("melsashopp/1.png"),
-    link: "",
-    features: [
-      "Product and variant catalog with pricing estimator, SKU generation, stock tracking, and print-file bindings",
-      "Customer and order management with status-based queues, search and filtering, and bulk internal label printing",
-      "Demand-driven production planning that surfaces stock shortfalls, open order demand, and suggested batch targets",
-      "Batch management with linked orders, printer assignments, AMS tray mapping, print-job review, and yield entry",
-      "Live Bambu printer fleet dashboard with camera feeds, telemetry, incidents, AMS and external spool visibility, and print controls",
-      "Scanner-based packing and shipping workstation for moving orders from packing to label creation to carrier handoff",
-      "BasitKargo shipment creation with status syncing, label handling, and customer and product sync",
-      "Sticker designer with live preview, reusable templates, PDF output, and direct label printing",
-    ],
-    role: "Designed and built the dashboard end to end, shaping the workflow from catalog and order intake through production planning, printer operations, packing, and shipping.",
-    screenshots: [
-      {
-        image: assetUrl("melsashopp/1.png"),
-        title: "Dashboard Overview",
-        description:
-          "The main dashboard brings the core operational picture into one frame, with attention items, order flow, production state, printer alerts, recent activity, and quick actions visible at once. It is the clearest single-screen summary of the product as an operations hub.",
-      },
-      {
-        image: assetUrl("melsashopp/2.png"),
-        title: "Orders Queue",
-        description:
-          "The orders view organizes day-to-day work into a clear queue with search, filters, status markers, customer details, and fast access to the next action. It gives the team a practical overview of what is waiting, what is moving, and what needs attention first.",
-      },
-      {
-        image: assetUrl("melsashopp/2.png"),
-        title: "New Order Flow",
-        description:
-          "The order creation flow shows that the dashboard handles intake as well as tracking. Customer selection, product and variant picking, quantities, pricing, notes, and live totals all come together in one guided workflow.",
-      },
-      {
-        image: assetUrl("melsashopp/3.png"),
-        title: "Product Detail and Print Setup",
-        description:
-          "Product detail ties the commercial catalog to production reality. Variants, pricing inputs, stock context, and print-file mappings live together so sellable outputs stay connected to the exact files and settings the team needs to produce them.",
-      },
-      {
-        image: assetUrl("melsashopp/5.png"),
-        title: "Production Planning",
-        description:
-          "Planning surfaces open demand, stock gaps, in-production quantities, and the next recommended batches to run. Instead of guessing what to print next, the team can build around real shortages and outstanding order demand.",
-      },
-      {
-        title: "Batch Detail",
-        description:
-          "Batch detail is the execution layer between planning and printer output. It brings together target quantities, linked orders, assigned machines, tray mapping, review steps, and yield tracking so operators can manage a run from setup through completion.",
-      },
-      {
-        image: assetUrl("melsashopp/4.png"),
-        title: "Printer Fleet and Controls",
-        description:
-          "This combined view communicates both monitoring and control. Operators can see live printer status, progress, cameras, AMS context, and incidents, while also understanding that print setup and machine actions happen from the same operational surface.",
-      },
-      {
-        title: "Packing and Shipping Workstation",
-        description:
-          "The workstation closes the loop from production to fulfillment. With scanner-driven order handling, packing actions, shipment creation, and label output in one flow, the team can move finished orders to carrier handoff without bouncing between tools.",
-      },
-      {
-        title: "Sticker Designer",
-        description:
-          "The sticker designer adds a reusable labeling tool with live preview, template controls, PDF output, and print actions. It is a strong supporting capability even though it sits outside the core order-to-production workflow.",
-      },
-    ],
   },
   {
     slug: "data-crispy",

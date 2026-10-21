@@ -6,7 +6,7 @@ const projectPresentation: Record<string, { category: string; summary: string }>
   arcura: { category: "Healthcare", summary: "A clearer path from patient scans to surgical plans." },
   "inventory-ark": { category: "Commerce operations", summary: "Products, stock, and fulfillment. One connected workspace." },
   "aslident-dental-clinic": { category: "Clinic website", summary: "An approachable digital front door for a dental clinic." },
-  "melsashopp-dashboard": { category: "Production management", summary: "Connecting the dots from customer order to 3D-printed product." },
+  "melsashopp-dashboard": { category: "E-commerce", summary: "A live store with payments, invoicing, and shipping built in." },
   "data-crispy": { category: "AI & analytics", summary: "Ask a question. Turn business data into something useful." },
 };
 
