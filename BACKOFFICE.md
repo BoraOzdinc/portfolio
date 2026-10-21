@@ -164,3 +164,9 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 ### Owner name row: 2026-10-20
 
 - Commit `31a9447`, code only (settings key `ownerName` set to the owner's name). Image `portfolio-backoffice:owner-31a9447` (also `latest`); rollback image `portfolio-backoffice:rollback-before-owner-31a9447`. `PUT /work/salary` became `PUT /work/settings` with `netSalary` and `ownerName`.
+
+### MelsaShopp portfolio content: 2026-10-21
+
+- Commit `72a4298`, frontend only. MelsaShopp is the featured and first project, with new storefront and dashboard screenshots (customer details blurred); experience matches the updated CV.
+- Image `portfolio-backoffice:melsa-72a4298` (also `latest`) layers the local `dist` over `owner-31a9447`; release files `/opt/portfolio-releases/melsa-72a4298`. Rollback image: `portfolio-backoffice:rollback-before-melsa-72a4298`, same tag-and-compose procedure, no database step.
+- Verified: healthy container with zero restarts, public routes 200, unauthenticated backoffice API 401, public asset hash matches the build, MelsaShopp containers untouched.
