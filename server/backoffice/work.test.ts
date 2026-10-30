@@ -15,9 +15,9 @@ test("Session length: remote work wraps midnight, early office exit counts as ze
   assert.equal(sessionMinutes("office", "18:00", "17:30"), 0);
 });
 
-test("Overtime pay matches the August 2026 payslip (65.000 net, 26,5 h = 11.483,33)", () => {
-  assert.equal(overtimeHourly(6_500_000), 43_333);
-  assert.equal(overtimeAmount(6_500_000, 26.5 * 60), 1_148_333);
+test("Overtime pay: net ÷ 225 × 1,5, rounded to kuruş (50.000 net, 10 h = 3.333,33)", () => {
+  assert.equal(overtimeHourly(5_000_000), 33_333);
+  assert.equal(overtimeAmount(5_000_000, 10 * 60), 333_333);
 });
 
 test("Work log API: ranges or durations, payment status, unpaid total and employer-format xlsx", async () => {
@@ -59,7 +59,7 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
         date: "2026-10-02",
         kind: "remote",
         duration: 360,
-        note: "İlknak (İzmir) Dönüş Yolculuğu",
+        note: "Müşteri ziyareti dönüş yolculuğu",
       }).expect(201)
     ).body.data;
     await send("post", "", {
@@ -94,7 +94,7 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
     );
 
     await send("put", "/settings", {
-      netSalary: 6_500_000,
+      netSalary: 5_000_000,
       ownerName: "Bora Kaan Özdinç",
     }).expect(200);
     await send("post", "/pay", {
@@ -108,17 +108,17 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
     data = (
       await request(app).get("/api/backoffice/work?month=2026-10").expect(200)
     ).body.data;
-    assert.equal(data.hourly, 43_333);
+    assert.equal(data.hourly, 33_333);
     assert.deepEqual(data.totals, {
       office: 120,
       remote: 660,
       all: 780,
-      amount: overtimeAmount(6_500_000, 780),
+      amount: overtimeAmount(5_000_000, 780),
       days: 3,
     });
     assert.deepEqual(data.unpaid, {
       minutes: 300,
-      amount: overtimeAmount(6_500_000, 300),
+      amount: overtimeAmount(5_000_000, 300),
     });
 
     // Switching an entry from a clock range to a declared duration.
@@ -161,7 +161,7 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
       ">Fazla Mesai Süresi</t>",
       `<c r="A4" s="2"><v>${excelDate("2026-10-02")}</v></c>`,
       `<c r="C4" s="3"><v>${360 / 1440}</v></c>`,
-      ">İlknak (İzmir) Dönüş Yolculuğu</t>",
+      ">Müşteri ziyareti dönüş yolculuğu</t>",
       ">=HYPERLINK(&quot;x&quot;)</t>",
       ">21:00–22:00</t>",
       "<f>SUM(C4:C7)</f>",

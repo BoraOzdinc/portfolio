@@ -99,7 +99,7 @@ Migration `0001` only adds tables. Take the usual SQLite backup before deploying
 `/backoffice?view=work` (sidebar: “Mesai”). Office exit is signed on paper at the office; this log is for days that differ from the default 18:00 exit and, mainly, for work outside the office, which has no signature. A day without entries means a normal 18:00 exit.
 
 - **Entry:** a clock range (office: planned exit → actual exit, early exit counts 0; remote: start → end, wraps midnight) or a declared duration only (travel, unclear hours). Any number per day, editable later.
-- **Payment status:** each entry is “Bekliyor” until marked paid against a payslip month (bulk select → “Ödendi işaretle”). Unpaid hours across all months are shown with expected net pay = net salary ÷ 225 × 1,5 per hour, matching the August 2026 payslip (65.000 → 433,33 TL/h). BES (~3 % of gross) is not subtracted. Net salary lives in `settings.netSalary` (kuruş).
+- **Payment status:** each entry is “Bekliyor” until marked paid against a payslip month (bulk select → “Ödendi işaretle”). Unpaid hours across all months are shown with expected net pay = net salary ÷ 225 × 1,5 per hour, matching the payslip method (e.g. 50.000 → 333,33 TL/h). BES (~3 % of gross) is not subtracted. Net salary lives in `settings.netSalary` (kuruş).
 - **Excel’e aktar:** `GET /api/backoffice/work/export?month=YYYY-MM` returns `mesai-YYYY-MM.xlsx` in the employer declaration layout: owner name row (`settings.ownerName`, edited with net salary under “Bordro bilgileri”), title row, Tarih (date cell), Gün, Fazla Mesai Süresi (`[h]:mm` duration cell), Birim, Nedeni, Saat Aralığı, and a `SUM` total. Written by the dependency-free `server/backoffice/xlsx.ts` (single sheet, stored zip, inline strings, so text is never evaluated as a formula); checked with openpyxl and `unzip -t`.
 - Migration `0004` rebuilds `workSessions` to make times nullable. drizzle-kit generated an INSERT selecting the new columns from the old table; it was corrected by hand to select `NULL` and checked against a populated database.
 
@@ -155,7 +155,7 @@ Tests use temporary databases, mocked mail/probes and mock frontend transport. N
 ### Work log revision: 2026-10-20
 
 - Commit `0cc3d7d`. Image `portfolio-backoffice:work2-0cc3d7d` (also `latest`) over `work-8f86a4a`; release files `/opt/portfolio-releases/work2-0cc3d7d`. Pre-migration backup `/var/backups/portfolio/pre-work2-0cc3d7d.sqlite`; rollback image `portfolio-backoffice:rollback-before-work2-0cc3d7d`. Rolling back needs the backup restored, because the old code requires non-null times.
-- Imported the 15 declared entries (52,5 h, Aug–Oct) from the owner's declaration sheet as unpaid durations, and set net salary 65.000 TL. The August export rendered on production matches the original sheet.
+- Imported the owner’s previously declared entries as unpaid durations and set net salary. A production export matches the original declaration sheet.
 
 ### xlsx export: 2026-10-20
 

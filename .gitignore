@@ -28,3 +28,7 @@ dist-ssr
 data/
 backups/
 *.sqlite*
+
+# Local keys and personal files
+*.pem
+selbin-tas-cv.pdf
