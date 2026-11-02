@@ -95,7 +95,8 @@ const weekday = (date: string) =>
  * Mirrors the declaration sheet handed to the employer (Tarih, Gün, Süre,
  * Birim, Nedeni) with real date/duration cells and a SUM total.
  */
-export function workXlsx(data: WorkSnapshot) {
+export function workXlsx(data: WorkSnapshot, kind?: Session["kind"]) {
+  const sessions = data.sessions.filter((w) => !kind || w.kind === kind);
   const title = `${monthName(data.month)} Ayı Ekstra Süreler`;
   const bold = (v: string) => ({ v, s: Style.Bold });
   const head = [
@@ -103,7 +104,7 @@ export function workXlsx(data: WorkSnapshot) {
     [bold(title)],
   ];
   const first = head.length + 2,
-    last = first + data.sessions.length - 1;
+    last = first + sessions.length - 1;
   return xlsx(
     `${monthName(data.month)} ${data.month.slice(0, 4)}`,
     [
@@ -116,7 +117,7 @@ export function workXlsx(data: WorkSnapshot) {
         "Nedeni",
         "Saat Aralığı",
       ].map(bold),
-      ...data.sessions.map((w) => [
+      ...sessions.map((w) => [
         { v: excelDate(w.date), s: Style.Date },
         weekday(w.date),
         { v: w.minutes / 1440, s: Style.Duration },
@@ -133,9 +134,9 @@ export function workXlsx(data: WorkSnapshot) {
         bold("Toplam"),
         null,
         {
-          v: data.totals.all / 1440,
+          v: sessions.reduce((a, w) => a + w.minutes, 0) / 1440,
           s: Style.BoldDuration,
-          ...(data.sessions.length && { f: `SUM(C${first}:C${last})` }),
+          ...(sessions.length && { f: `SUM(C${first}:C${last})` }),
         },
         bold("SAAT"),
       ],
@@ -160,7 +161,14 @@ export function workRouter(db: DB) {
   );
   router.get("/export", (req, res) => {
     const data = workSnapshot(db, req.query);
-    res.attachment(`mesai-${data.month}.xlsx`).send(workXlsx(data));
+    const kind = z
+      .enum(["office", "remote"])
+      .optional()
+      .parse(req.query.kind || undefined);
+    const suffix = kind ? { office: "-ofis", remote: "-ofis-disi" }[kind] : "";
+    res
+      .attachment(`mesai-${data.month}${suffix}.xlsx`)
+      .send(workXlsx(data, kind));
   });
   router.post("/", (req, res) => {
     const row = db

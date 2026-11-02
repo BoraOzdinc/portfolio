@@ -168,6 +168,25 @@ test("Work log API: ranges or durations, payment status, unpaid total and employ
     ])
       assert.ok(sheet.includes(part), part);
 
+    const officeFile = await request(app)
+      .get("/api/backoffice/work/export?month=2026-10&kind=office")
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c: Buffer) => chunks.push(c));
+        res.on("end", () => done(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    assert.match(
+      String(officeFile.headers["content-disposition"]),
+      /mesai-2026-10-ofis\.xlsx/,
+    );
+    const officeSheet = (officeFile.body as Buffer).toString("utf8");
+    assert.ok(!officeSheet.includes(">Müşteri ziyareti dönüş yolculuğu</t>"));
+    await request(app)
+      .get("/api/backoffice/work/export?kind=nope")
+      .expect(400);
+
     await request(
       createApp(
         store,

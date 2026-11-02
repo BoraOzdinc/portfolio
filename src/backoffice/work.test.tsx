@@ -67,6 +67,12 @@ it("logs office exit and remote work, totals the month and links the export", as
     expect(
       screen.getByRole("link", { name: /Excel’e aktar/ }).getAttribute("href"),
     ).toBe(`/api/backoffice/work/export?month=${day.slice(0, 7)}`);
+    fireEvent.change(screen.getByLabelText("Excel’e aktarılacak kayıtlar"), {
+      target: { value: "remote" },
+    });
+    expect(
+      screen.getByRole("link", { name: /Excel’e aktar/ }).getAttribute("href"),
+    ).toBe(`/api/backoffice/work/export?month=${day.slice(0, 7)}&kind=remote`);
 
     fireEvent.change(screen.getByLabelText("Başlangıç"), {
       target: { value: "20:00" },

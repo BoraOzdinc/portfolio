@@ -43,7 +43,8 @@ export function Work() {
     [removing, setRemoving] = useState<Session | null>(null),
     [selected, setSelected] = useState<string[]>([]),
     [paying, setPaying] = useState(false),
-    [salaryOpen, setSalaryOpen] = useState(false);
+    [salaryOpen, setSalaryOpen] = useState(false),
+    [exportKind, setExportKind] = useState<Kind | "">("");
   const form = useRef<HTMLFormElement>(null);
   const latest = useRef(0);
   const reload = useCallback(async () => {
@@ -137,9 +138,18 @@ export function Work() {
           <p>Ofisten geç çıkışların ve ofis dışında çalıştığın saatler.</p>
         </div>
         <div className="bo-actions">
+          <select
+            aria-label="Excel’e aktarılacak kayıtlar"
+            value={exportKind}
+            onChange={(e) => setExportKind(e.target.value as Kind | "")}
+          >
+            <option value="">Tüm kayıtlar</option>
+            <option value="office">Ofiste fazla mesai</option>
+            <option value="remote">Ofis dışı çalışma</option>
+          </select>
           <a
             className="bo-button"
-            href={`/api/backoffice/work/export?month=${data.month}`}
+            href={`/api/backoffice/work/export?month=${data.month}${exportKind && `&kind=${exportKind}`}`}
             download
           >
             <Download size={16} /> Excel’e aktar
